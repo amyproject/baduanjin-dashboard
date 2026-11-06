@@ -1,0 +1,3046 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <link rel="icon" href="data:," />
+    <title>Baduanjin Learning Dashboard — 八段锦</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #fdfcfa;
+        --surface: #ffffff;
+        --surface-alt: #f6f2ec;
+        --text: #211d1a;
+        --dim: #7a7268;
+        --border: #e7e0d4;
+        --accent: #b3352b;
+        --accent-soft: #f9e9e6;
+        --good: #5c7350;
+        --radius: 14px;
+      }
+      [data-theme="midnight"] {
+        color-scheme: dark;
+        --bg: #14161c;
+        --surface: #1e212b;
+        --surface-alt: #262a36;
+        --text: #f2efe9;
+        --dim: #a49e93;
+        --border: #333947;
+        --accent: #e0685c;
+        --accent-soft: #3a2725;
+        --good: #9db38c;
+      }
+      [data-theme="blossom"] {
+        --bg: #fdf3f4;
+        --surface: #fffafa;
+        --surface-alt: #fbe7ea;
+        --text: #33222a;
+        --dim: #96707c;
+        --border: #f3d3da;
+        --accent: #b3352b;
+        --accent-soft: #fbe3e6;
+        --good: #5c7350;
+      }
+      [data-theme="bamboo"] {
+        --bg: #f3f6ef;
+        --surface: #fbfdf8;
+        --surface-alt: #e6edda;
+        --text: #232b1e;
+        --dim: #75816a;
+        --border: #d5dfc6;
+        --accent: #a02c23;
+        --accent-soft: #f3e4dd;
+        --good: #4f6d3e;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 16px;
+        line-height: 1.5;
+        transition: background-color .25s, color .25s;
+      }
+      .font-display {
+        font-family: "Songti SC", "Noto Serif SC", "Noto Serif CJK SC", "STSong", Georgia, "Times New Roman", serif;
+      }
+      main { max-width: 1152px; margin: 0 auto; padding: 20px 16px 40px; }
+      button { font: inherit; cursor: pointer; background: none; border: none; color: inherit; }
+      button:disabled { cursor: not-allowed; }
+      h1, h2, h3 { margin: 0; }
+      p { margin: 0; }
+
+      /* Header */
+      .header { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+      .ring-wrap { position: relative; width: 56px; height: 56px; flex-shrink: 0; }
+      .ring-wrap svg { width: 56px; height: 56px; transform: rotate(-90deg); display: block; }
+      .ring-num { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; }
+      .header-text { flex: 1; min-width: 200px; }
+      .header-text h1 { font-size: 24px; font-weight: 600; line-height: 1.3; }
+      .header-text h1 .accent, .accent { color: var(--accent); }
+      .header-text p { font-size: 14px; color: var(--dim); margin-top: 2px; }
+      .btn-accent { background: var(--accent); color: #fff; border-radius: 999px; padding: 10px 20px; font-weight: 500; }
+      .btn-accent:hover { filter: brightness(1.07); }
+
+      /* Tabs */
+      .tabs { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 8px; padding-bottom: 4px; }
+      .tab { flex-shrink: 0; border-radius: 999px; padding: 8px 16px; font-size: 14px; font-weight: 500; white-space: nowrap; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+      .tab.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+      /* Settings */
+      .settings { margin-top: 16px; display: grid; gap: 12px; border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius); padding: 16px; }
+      @media (min-width: 640px) { .settings { grid-template-columns: repeat(2, 1fr); } }
+      @media (min-width: 1024px) { .settings { grid-template-columns: repeat(4, 1fr); } }
+      .settings fieldset { border: none; margin: 0; padding: 0; min-width: 0; }
+      .settings legend { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--dim); margin-bottom: 8px; padding: 0; }
+      .chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+      .chip { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 6px 12px; font-size: 14px; border: 1px solid var(--border); color: var(--text); background: transparent; }
+      .chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+      .chip .swatch { width: 12px; height: 12px; border-radius: 999px; border: 1px solid rgba(0,0,0,.15); display: inline-block; }
+      .chip.disabled { opacity: .6; color: var(--dim); cursor: not-allowed; }
+      .chip.soft { border-color: transparent; }
+      .chip.soft.active { background: var(--accent-soft); color: var(--accent); border-color: transparent; font-weight: 500; }
+
+      /* Playback options */
+      .playopts { margin-top: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+      .playopts .label { font-size: 14px; color: var(--dim); }
+      .speed-btn { border-radius: 999px; padding: 4px 10px; font-size: 14px; font-variant-numeric: tabular-nums; border: 1px solid var(--border); background: var(--surface); }
+      .speed-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+      .toggle-chip { border-radius: 999px; padding: 6px 12px; font-size: 14px; border: 1px solid var(--border); background: var(--surface); color: var(--dim); }
+      .toggle-chip.active { background: var(--accent-soft); color: var(--accent); border-color: transparent; font-weight: 500; }
+      .hint-xs { font-size: 12px; color: var(--dim); }
+
+      /* Layout */
+      .layout { margin-top: 20px; display: grid; grid-template-columns: minmax(0,1fr); gap: 24px; align-items: start; }
+      @media (min-width: 1024px) { .layout { grid-template-columns: minmax(0,1fr) 360px; } }
+      .stage-col { min-width: 0; }
+      .side-col { min-width: 0; }
+      @media (min-width: 1024px) { .side-col { position: sticky; top: 16px; } }
+
+      /* Player */
+      .p-stage { position: relative; width: 100%; overflow: hidden; border-radius: var(--radius); background: #000; touch-action: none; user-select: none; -webkit-user-select: none; }
+      .p-stage video { display: block; width: 100%; height: auto; max-height: 62vh; object-fit: contain; background: #000; }
+      .p-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+      .p-overlay .big-play { display: flex; width: 64px; height: 64px; align-items: center; justify-content: center; border-radius: 999px; background: rgba(0,0,0,.55); color: #fff; font-size: 24px; pointer-events: none; }
+      .p-transport { margin-top: 12px; display: flex; align-items: center; gap: 12px; }
+      .p-play { flex-shrink: 0; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 999px; background: var(--accent); color: #fff; font-size: 16px; }
+      .p-time { flex-shrink: 0; font-size: 14px; color: var(--dim); font-variant-numeric: tabular-nums; }
+      .p-seek { flex: 1; min-width: 0; accent-color: var(--accent); }
+      .p-zoomrow { margin-top: 8px; display: flex; align-items: center; gap: 12px; }
+      .p-zoomrow .zlabel { font-size: 14px; color: var(--dim); white-space: nowrap; }
+      .p-zoom { flex: 1; min-width: 0; accent-color: var(--accent); }
+      .p-reset { flex-shrink: 0; border: 1px solid var(--border); border-radius: 999px; padding: 6px 12px; font-size: 14px; color: var(--text); background: transparent; }
+      .p-panhint { margin-top: 4px; font-size: 12px; color: var(--dim); display: none; }
+      .p-panhint.show { display: block; }
+
+      /* Section headings */
+      .sec-title { font-size: 20px; font-weight: 600; }
+      .sec-sub { margin: 4px 0 12px; font-size: 14px; color: var(--dim); }
+
+      /* Chapters */
+      .chapters { margin-top: 16px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      @media (min-width: 640px) { .chapters { grid-template-columns: repeat(4, 1fr); } }
+      .chapter { border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius); padding: 10px 12px; text-align: left; }
+      .chapter:hover { border-color: var(--accent); }
+      .chapter .c-time { display: block; font-size: 12px; color: var(--dim); }
+      .chapter .c-zh { display: block; font-size: 14px; font-weight: 500; margin-top: 1px; }
+      .chapter .c-en { display: block; font-size: 12px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+      /* Learn header */
+      .form-kicker { font-size: 14px; font-weight: 600; color: var(--accent); }
+      .form-title { margin-top: 4px; font-size: 26px; line-height: 1.25; font-weight: 600; }
+      @media (min-width: 640px) { .form-title { font-size: 30px; } }
+      .form-zh { font-size: 18px; color: var(--dim); margin-top: 2px; }
+      .angle-row { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+
+      /* Four-angle grid */
+      .grid4 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      .cell { position: relative; aspect-ratio: 1 / 1; overflow: hidden; border-radius: var(--radius); background: #000; }
+      .cell button { display: block; width: 100%; height: 100%; padding: 0; }
+      .cell video { width: 100%; height: 100%; object-fit: contain; display: block; }
+      .cell .tag { position: absolute; bottom: 8px; left: 8px; background: rgba(0,0,0,.6); color: #fff; border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 500; pointer-events: none; }
+      .cell .soon { display: flex; height: 100%; width: 100%; flex-direction: column; align-items: center; justify-content: center; gap: 4px; background: var(--surface-alt); padding: 0 12px; text-align: center; }
+      .cell .soon .cam { font-size: 24px; opacity: .4; }
+      .cell .soon .t { font-size: 14px; font-weight: 500; color: var(--dim); }
+      .note-sm { margin-top: 8px; font-size: 14px; color: var(--dim); }
+
+      /* How-to */
+      .howto { border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius); padding: 16px; }
+      @media (min-width: 640px) { .howto { padding: 20px; } }
+      .howto h3 { font-size: 18px; font-weight: 600; }
+      .howto ol { margin: 12px 0 0; padding-left: 20px; }
+      .howto ol li { font-size: 15px; line-height: 1.65; margin-top: 8px; }
+      .howto ol li:first-child { margin-top: 0; }
+      .howto .extra { margin-top: 16px; font-size: 15px; line-height: 1.65; }
+      .howto .extra p { margin-top: 8px; }
+      .howto .extra p:first-child { margin-top: 0; }
+      .howto .b-label { font-weight: 600; color: var(--good); }
+      .howto .m-label { font-weight: 600; color: var(--accent); }
+
+      /* Practiced button */
+      .practiced-btn { margin-top: 16px; width: 100%; border-radius: 999px; padding: 12px; font-weight: 500; border: 2px solid var(--good); color: var(--good); background: transparent; }
+      .practiced-btn.done { background: var(--good); color: #fff; }
+
+      /* Practice bar + done card */
+      .practice-bar { margin-bottom: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+      .practice-badge { background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 6px 12px; font-size: 14px; font-weight: 500; }
+      .practice-nav { border: 1px solid var(--border); background: var(--surface); border-radius: 999px; padding: 6px 12px; font-size: 14px; }
+      .practice-nav:disabled { opacity: .4; }
+      .practice-end { font-size: 14px; color: var(--dim); text-decoration: underline; padding: 6px 12px; }
+      .done-card { border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius); padding: 24px; text-align: center; }
+      .done-card .emoji { font-size: 36px; }
+      .done-card h2 { margin-top: 8px; font-size: 20px; font-weight: 600; }
+      .done-card p { margin-top: 4px; font-size: 14px; color: var(--dim); }
+      .done-card .btn-accent { margin-top: 16px; }
+
+      /* Move list */
+      .side-col h2 { font-size: 18px; font-weight: 600; margin-bottom: 12px; }
+      .move-list { display: flex; flex-direction: column; gap: 8px; }
+      .move-row { display: flex; align-items: center; gap: 12px; border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius); padding: 12px; }
+      .move-row.active { border-color: var(--accent); background: var(--accent-soft); }
+      .move-main { display: flex; flex: 1; min-width: 0; align-items: center; gap: 12px; text-align: left; padding: 0; }
+      .move-num { display: flex; width: 36px; height: 36px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 999px; font-size: 16px; font-weight: 600; background: var(--surface-alt); color: var(--dim); }
+      .move-num.done { background: var(--good); color: #fff; }
+      .move-names { min-width: 0; }
+      .move-names .en { display: block; font-size: 15px; font-weight: 500; line-height: 1.35; }
+      .move-names .zh { display: block; font-size: 14px; color: var(--dim); line-height: 1.35; }
+      .move-check { display: flex; width: 36px; height: 36px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 999px; border: 1px solid var(--border); font-size: 16px; color: var(--dim); background: transparent; }
+      .move-check.done { border-color: var(--good); background: var(--good); color: #fff; }
+      .progress-track { margin-top: 12px; height: 8px; overflow: hidden; border-radius: 999px; background: var(--surface-alt); }
+      .progress-fill { height: 100%; border-radius: 999px; background: var(--good); transition: width .3s; }
+      .progress-note { margin-top: 6px; font-size: 12px; color: var(--dim); }
+
+      /* Hosting card */
+      .hosting { margin-top: 32px; border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius); padding: 16px 20px; }
+      .hosting h2 { font-size: 16px; font-weight: 600; }
+      .hosting p, .hosting li { font-size: 14px; color: var(--dim); line-height: 1.6; }
+      .hosting p { margin-top: 6px; }
+      .hosting ol { margin: 8px 0 0; padding-left: 20px; }
+      .hosting code { background: var(--surface-alt); border-radius: 6px; padding: 1px 6px; font-size: 13px; color: var(--text); }
+      .hidden { display: none !important; }
+    </style>
+    <style data-hatch-cvm-bundle></style>
+</head>
+  <body>
+    <main>
+      <!-- Header: progress + practice CTA -->
+      <div class="header">
+        <div class="ring-wrap" aria-hidden="true">
+          <svg viewBox="0 0 44 44">
+            <circle cx="22" cy="22" r="17" fill="none" stroke="var(--border)" stroke-width="5"></circle>
+            <circle id="ringFg" cx="22" cy="22" r="17" fill="none" stroke="var(--good)" stroke-width="5" stroke-linecap="round"></circle>
+          </svg>
+          <span class="ring-num" id="ringNum">0/8</span>
+        </div>
+        <div class="header-text">
+          <h1 class="font-display">Baduanjin <span class="accent">八段锦</span></h1>
+          <p id="headerSub">0 of 8 forms practiced. Learn each move, then check it off.</p>
+        </div>
+        <button type="button" class="btn-accent" id="practiceAllBtn">▶ Practice All</button>
+      </div>
+
+      <!-- View tabs -->
+      <div class="tabs" role="tablist" aria-label="Dashboard views" id="tabs">
+        <button type="button" role="tab" class="tab" data-mode="full">Show All · 全套</button>
+        <button type="button" role="tab" class="tab" data-mode="learn">Move Breakdown · 逐式</button>
+        <button type="button" role="tab" class="tab" data-mode="practice">Practice All · 练习</button>
+      </div>
+
+      <!-- Settings: background, outfit, music -->
+      <section class="settings" aria-label="Studio settings">
+        <fieldset>
+          <legend id="legendBg">Background 背景</legend>
+          <div class="chip-row" id="themeRow"></div>
+        </fieldset>
+        <fieldset>
+          <legend id="legendOutfit">Outfit 服装</legend>
+          <div class="chip-row" id="outfitRow"></div>
+        </fieldset>
+        <fieldset>
+          <legend id="legendMusic">Music 音乐</legend>
+          <div class="chip-row" id="musicRow"></div>
+        </fieldset>
+        <fieldset>
+          <legend id="legendLang">Language 语言</legend>
+          <div class="chip-row" id="langRow"></div>
+        </fieldset>
+      </section>
+
+      <!-- Playback options: speed, loop, mirror -->
+      <div class="playopts">
+        <div class="chip-row" style="align-items:center;">
+          <span class="label" id="speedLabel">Speed</span>
+          <span class="chip-row" id="speedRow"></span>
+        </div>
+        <button type="button" class="toggle-chip" id="loopBtn">🔁 Loop on</button>
+        <button type="button" class="toggle-chip" id="mirrorBtn">🪞 Mirror off</button>
+        <span class="hint-xs" id="mirrorHint">Mirror flips the video so it matches your own left and right.</span>
+      </div>
+
+      <div class="layout">
+        <!-- Stage column -->
+        <div class="stage-col">
+          <!-- Show All -->
+          <section id="fullView" class="hidden">
+            <h2 class="font-display sec-title" id="fullTitle">The Full Set <span class="accent">全套练习</span></h2>
+            <p class="sec-sub" id="fullSub"></p>
+            <div id="playerFull"></div>
+            <div class="chapters" id="chapters"></div>
+          </section>
+
+          <!-- Learn / Practice -->
+          <section id="learnView" class="hidden">
+            <div class="practice-bar hidden" id="practiceBar">
+              <span class="practice-badge" id="practiceBadge">Move 1 of 8</span>
+              <button type="button" class="practice-nav" id="practicePrev">← Previous move</button>
+              <button type="button" class="practice-nav" id="practiceNext">Next move →</button>
+              <button type="button" class="practice-end" id="practiceEnd">End practice</button>
+            </div>
+
+            <div class="done-card hidden" id="practiceDone">
+              <p class="emoji">🎉</p>
+              <h2 class="font-display" id="doneTitle">Full set complete!</h2>
+              <p id="doneText">You practiced all 8 forms in order. Check them off in the list to update your progress ring.</p>
+              <button type="button" class="btn-accent" id="practiceAgain">Practice again</button>
+            </div>
+
+            <div id="learnBody">
+              <p class="form-kicker" id="formKicker"></p>
+              <h2 class="font-display form-title" id="formTitle"></h2>
+              <p class="font-display form-zh" id="formZh"></p>
+
+              <div class="angle-row" id="angleRow"></div>
+              <p class="hint-xs hidden" id="gymNote" style="margin-top:8px;">The four-angle views were filmed in the red traditional outfit — switch the outfit to Red Traditional to study them.</p>
+
+              <div style="margin-top:12px;">
+                <div id="playerMain"></div>
+                <div id="angleGridWrap" class="hidden">
+                  <div class="grid4" id="angleGrid"></div>
+                </div>
+                <p class="note-sm hidden" id="stageNote"></p>
+              </div>
+
+              <div style="margin-top:16px;">
+                <section class="howto" id="howto" aria-label="How to do this move"></section>
+              </div>
+
+              <button type="button" class="practiced-btn" id="practicedBtn"></button>
+            </div>
+          </section>
+
+          <!-- Hosting this file -->
+          <section class="hosting" aria-label="Hosting this file">
+            <h2 id="hostTitle">Hosting this page</h2>
+            <p id="hostP">This dashboard is one self-contained page — the videos travel with it, and it needs no server, account, or database. To put it online:</p>
+            <ol>
+              <li id="hostLi1">Save this page as a single <code>.html</code> file (in Muse, use the artifact's export; in a browser, File → Save Page As).</li>
+              <li id="hostLi2">Drop the file onto any static host — <code>Netlify Drop</code>, <code>GitHub Pages</code>, <code>Cloudflare Pages</code>, or any web space you already have.</li>
+              <li id="hostLi3">Open the link it gives you. Everything works offline-capable in the browser; practiced checkmarks are kept only while the page stays open.</li>
+            </ol>
+          </section>
+        </div>
+
+        <!-- Move list column -->
+        <nav class="side-col" aria-label="All Baduanjin moves">
+          <h2 class="font-display" id="sideTitle">All 8 forms <span class="accent">八式</span></h2>
+          <div class="move-list" id="moveList"></div>
+          <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+          <p class="progress-note" id="progressNote">0 of 8 forms practiced — progress is kept on this device only while the page is open.</p>
+        </nav>
+      </div>
+    </main>
+
+    
+  <script data-hatch-cvm-bundle>(() => {
+  var __defProp = Object.defineProperty;
+  var __getOwnPropNames = Object.getOwnPropertyNames;
+  var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  var __hasOwnProp = Object.prototype.hasOwnProperty;
+  function __accessProp(key) {
+    return this[key];
+  }
+  var __toCommonJS = (from) => {
+    var entry = (__moduleCache ??= new WeakMap).get(from), desc;
+    if (entry)
+      return entry;
+    entry = __defProp({}, "__esModule", { value: true });
+    if (from && typeof from === "object" || typeof from === "function") {
+      for (var key of __getOwnPropNames(from))
+        if (!__hasOwnProp.call(entry, key))
+          __defProp(entry, key, {
+            get: __accessProp.bind(from, key),
+            enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+          });
+    }
+    __moduleCache.set(from, entry);
+    return entry;
+  };
+  var __moduleCache;
+
+  // src/prelude.ts
+  var exports_prelude = {};
+
+  // src/tunnel-url.ts
+  var B64_CHUNK = 32768;
+  function computeSelfBaseDir(selfHref) {
+    if (!selfHref)
+      return "";
+    let h = selfHref;
+    const hash = h.indexOf("#");
+    if (hash >= 0)
+      h = h.slice(0, hash);
+    const q = h.indexOf("?");
+    if (q >= 0)
+      h = h.slice(0, q);
+    const slash = h.lastIndexOf("/");
+    return slash >= 0 ? h.slice(0, slash + 1) : "";
+  }
+  function isSelfOriginUrl(u, selfBaseDir, selfHref, objectUrls) {
+    if (!selfBaseDir || !u.startsWith(selfBaseDir))
+      return false;
+    if (u === selfHref)
+      return false;
+    return !objectUrls.has(u);
+  }
+  function isExternalUrl(u, selfBaseDir, selfHref, objectUrls) {
+    if (!u)
+      return false;
+    if (u.startsWith("#"))
+      return true;
+    if (isSelfOriginUrl(u, selfBaseDir, selfHref, objectUrls))
+      return false;
+    if (u.startsWith("data:") || u.startsWith("blob:"))
+      return true;
+    if (u.startsWith("about:") || u.startsWith("javascript:"))
+      return true;
+    if (u.startsWith("//"))
+      return true;
+    if (/^[a-z][a-z0-9+.-]*:/i.test(u)) {
+      return true;
+    }
+    return false;
+  }
+  function normalizeToRelPath(u, selfBaseDir) {
+    let s = u;
+    if (selfBaseDir && s.startsWith(selfBaseDir)) {
+      s = s.slice(selfBaseDir.length);
+    }
+    s = s.replace(/^\.\//, "");
+    s = s.replace(/^\/+/, "");
+    return s;
+  }
+  function blobInner(base, NativeURL) {
+    if (base == null)
+      return null;
+    const s = typeof base === "string" ? base : base instanceof NativeURL ? base.href : String(base);
+    return s.startsWith("blob:") ? s.slice("blob:".length) : null;
+  }
+  var OPAQUE_BLOB_ORIGIN = "https://hatch-cvm-opaque.invalid";
+  function isAbsoluteUrlString(s, NativeURL) {
+    try {
+      new NativeURL(s);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  function resolveAgainstBlobBase(u, base, NativeURL) {
+    const inner = blobInner(base, NativeURL);
+    if (inner === null)
+      return null;
+    if (isAbsoluteUrlString(inner, NativeURL)) {
+      return new NativeURL("blob:" + new NativeURL(u, inner).href);
+    }
+    const slash = inner.indexOf("/");
+    const token = slash >= 0 ? inner.slice(0, slash) : inner;
+    const path = slash >= 0 ? inner.slice(slash) : "/";
+    const resolved = new NativeURL(u, OPAQUE_BLOB_ORIGIN + path);
+    return new NativeURL("blob:" + token + resolved.pathname + resolved.search + resolved.hash);
+  }
+  function resolveTunnelUrl(url, base, selfHref, NativeURL) {
+    const u = url == null ? "" : typeof url === "string" ? url : url instanceof NativeURL ? url.href : String(url);
+    const uAbsolute = /^[a-z][a-z0-9+.-]*:/i.test(u) || u.startsWith("//");
+    if (base !== undefined && base !== null && !uAbsolute) {
+      const viaBlob = resolveAgainstBlobBase(u, base, NativeURL);
+      if (viaBlob !== null)
+        return viaBlob;
+      return new NativeURL(u, base);
+    }
+    if (!uAbsolute && selfHref) {
+      const viaBlob = resolveAgainstBlobBase(u, selfHref, NativeURL);
+      if (viaBlob !== null)
+        return viaBlob;
+    }
+    return base === undefined ? new NativeURL(u) : new NativeURL(u, base);
+  }
+  function bytesToBase64(bytes) {
+    const u8 = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+    let s = "";
+    for (let i = 0;i < u8.length; i += B64_CHUNK) {
+      s += String.fromCharCode.apply(null, Array.from(u8.subarray(i, i + B64_CHUNK)));
+    }
+    return btoa(s);
+  }
+  function base64ToBytes(b64) {
+    const bin = atob(b64);
+    const out = new Uint8Array(bin.length);
+    for (let i = 0;i < bin.length; i++)
+      out[i] = bin.charCodeAt(i);
+    return out;
+  }
+  function importMetaUrl(selfHref, selfBaseDir) {
+    return selfBaseDir ? `${selfBaseDir}assets/cvm-bundle.js` : selfHref;
+  }
+
+  // src/download-links.ts
+  function installDownloadLinks(fetchAsset, isExternalUrl, revokeDelayMs) {
+    document.addEventListener("click", (event) => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+        return;
+      const anchor = event.composedPath().find((node) => node instanceof HTMLAnchorElement);
+      if (!anchor?.hasAttribute("download"))
+        return;
+      const href = anchor.getAttribute("href");
+      if (!href || isExternalUrl(href))
+        return;
+      event.preventDefault();
+      const filename = anchor.download || resourceFilename(href);
+      (async () => {
+        const response = await fetchAsset(href);
+        if (!response.ok) {
+          throw new Error(`Artifact download failed: HTTP ${response.status}`);
+        }
+        const url = URL.createObjectURL(await response.blob());
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        link.hidden = true;
+        document.body.appendChild(link);
+        try {
+          link.click();
+        } finally {
+          link.remove();
+          setTimeout(() => URL.revokeObjectURL(url), revokeDelayMs);
+        }
+      })().catch((error) => reportError(error));
+    });
+  }
+  function resourceFilename(href) {
+    const path = new URL(href, document.baseURI).pathname;
+    const name = path.slice(path.lastIndexOf("/") + 1);
+    try {
+      return decodeURIComponent(name);
+    } catch {
+      return name;
+    }
+  }
+
+  // src/fragment-links.ts
+  function installFragmentLinks() {
+    if (!location.href.startsWith("blob:null/"))
+      return;
+    const NativeURL = URL;
+    const pushState = history.pushState.bind(history);
+    const replaceState = history.replaceState.bind(history);
+    window.addEventListener("click", (event) => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+        return;
+      const anchor = event.composedPath().find((node) => node instanceof HTMLAnchorElement);
+      if (!anchor || anchor.hasAttribute("download"))
+        return;
+      const targetName = anchor.getAttribute("target") ?? document.querySelector("base[target]")?.getAttribute("target") ?? "";
+      if (targetName !== "" && targetName.toLowerCase() !== "_self")
+        return;
+      const href = anchor.getAttribute("href");
+      if (!href?.startsWith("#"))
+        return;
+      const oldURL = location.href;
+      const nextURL = new NativeURL(href, oldURL);
+      event.preventDefault();
+      const changed = nextURL.href !== oldURL;
+      if (changed) {
+        pushState(null, "", nextURL.href);
+      } else {
+        replaceState(null, "", nextURL.href);
+      }
+      window.dispatchEvent(new PopStateEvent("popstate", { state: null }));
+      const target = fragmentTarget(nextURL.hash);
+      if (target) {
+        target.scrollIntoView();
+        if (target !== document.documentElement && (target instanceof HTMLElement || target instanceof SVGElement)) {
+          const hadTabIndex = target.hasAttribute("tabindex");
+          if (!hadTabIndex)
+            target.setAttribute("tabindex", "-1");
+          target.focus({ preventScroll: true });
+          if (!hadTabIndex)
+            target.removeAttribute("tabindex");
+        }
+      }
+      if (changed) {
+        queueMicrotask(() => window.dispatchEvent(new HashChangeEvent("hashchange", {
+          oldURL,
+          newURL: nextURL.href
+        })));
+      }
+    });
+  }
+  function fragmentTarget(hash) {
+    const bytes = hash.slice(1).replace(/%([0-9a-f]{2})/gi, (_match, hex) => String.fromCharCode(parseInt(hex, 16)));
+    const fragment = new TextDecoder().decode(Uint8Array.from(bytes, (byte) => byte.charCodeAt(0)));
+    if (fragment === "")
+      return document.documentElement;
+    const idTarget = document.getElementById(fragment);
+    if (idTarget)
+      return idTarget;
+    const namedTarget = Array.from(document.getElementsByName(fragment)).find((node) => node instanceof HTMLAnchorElement);
+    return namedTarget ?? (fragment.toLowerCase() === "top" ? document.documentElement : null);
+  }
+
+  // src/prelude.ts
+  (function installTunnel() {
+    installFragmentLinks();
+    let port = null;
+    let portReadyResolve = null;
+    const portReady = new Promise((res) => {
+      portReadyResolve = res;
+    });
+    const pending = new Map;
+    const openWs = new Map;
+    function newId() {
+      return Math.random().toString(36).slice(2) + "-" + Date.now().toString(36);
+    }
+    function bytesToB64(bytes) {
+      return bytesToBase64(bytes);
+    }
+    function b64ToBytes(b64) {
+      return base64ToBytes(b64);
+    }
+    async function httpReq(method, path, body, headers) {
+      const p = port ?? await portReady;
+      const id = newId();
+      const headerArr = [];
+      if (headers) {
+        const h = new Headers(headers);
+        h.forEach((v, k) => headerArr.push([k, v]));
+      }
+      let bodyB64 = "";
+      if (body != null && body !== "") {
+        let bytes;
+        if (typeof body === "string") {
+          bytes = new TextEncoder().encode(body);
+        } else if (body instanceof ArrayBuffer) {
+          bytes = new Uint8Array(body);
+        } else if (body instanceof Uint8Array) {
+          bytes = body;
+        } else if (body instanceof Blob) {
+          bytes = new Uint8Array(await body.arrayBuffer());
+        } else if (body instanceof FormData) {
+          const boundary = "----HatchBoundary" + Math.random().toString(36).slice(2);
+          let s = "";
+          for (const [k, v] of body.entries()) {
+            s += `--${boundary}\r
+Content-Disposition: form-data; name="${k}"`;
+            if (v instanceof File) {
+              s += `; filename="${v.name}"\r
+Content-Type: ${v.type || "application/octet-stream"}\r
+\r
+`;
+              const fb = new Uint8Array(await v.arrayBuffer());
+              s += new TextDecoder("latin1").decode(fb);
+            } else {
+              s += `\r
+\r
+${v}`;
+            }
+            s += `\r
+`;
+          }
+          s += `--${boundary}--\r
+`;
+          bytes = new TextEncoder().encode(s);
+          headerArr.push([
+            "content-type",
+            `multipart/form-data; boundary=${boundary}`
+          ]);
+        } else {
+          bytes = new TextEncoder().encode(String(body));
+        }
+        bodyB64 = bytesToB64(bytes);
+      }
+      return new Promise((resolve, reject) => {
+        pending.set(id, {
+          resolve: (msg) => {
+            if (msg.error) {
+              reject(new Error(msg.error.message ?? "tunnel error"));
+              return;
+            }
+            resolve({
+              status: msg.status,
+              headers: msg.headers,
+              bytes: msg.bodyB64 ? b64ToBytes(msg.bodyB64) : new Uint8Array(0)
+            });
+          },
+          reject
+        });
+        p.postMessage({
+          type: "http.req",
+          id,
+          method,
+          path,
+          headers: headerArr,
+          bodyB64
+        });
+      });
+    }
+    async function tunnelFetch(input, init) {
+      let urlStr;
+      let method = init?.method ?? "GET";
+      let headers = init?.headers;
+      let body = init?.body;
+      if (input instanceof Request) {
+        urlStr = input.url;
+        method = init?.method ?? input.method;
+        headers = init?.headers ?? input.headers;
+        if (body == null && input.body) {
+          body = await input.arrayBuffer();
+        }
+      } else {
+        urlStr = String(input);
+      }
+      if (isExternalUrl2(urlStr)) {
+        return originalFetch(input, init);
+      }
+      const relPath = normalizeToRelPath2(urlStr);
+      const r = await httpReq(method, relPath, body ?? null, headers);
+      const respHeaders = new Headers;
+      for (const [k, v] of r.headers ?? [])
+        respHeaders.set(k, v);
+      return new Response(r.bytes, {
+        status: r.status,
+        headers: respHeaders
+      });
+    }
+
+    class TunnelWebSocket extends EventTarget {
+      readyState = 0;
+      static CONNECTING = 0;
+      static OPEN = 1;
+      static CLOSING = 2;
+      static CLOSED = 3;
+      CONNECTING = 0;
+      OPEN = 1;
+      CLOSING = 2;
+      CLOSED = 3;
+      url;
+      binaryType = "blob";
+      bufferedAmount = 0;
+      protocol = "";
+      extensions = "";
+      onopen = null;
+      onmessage = null;
+      onclose = null;
+      onerror = null;
+      _id;
+      constructor(urlIn, _protocols) {
+        super();
+        const urlStr = String(urlIn);
+        this.url = urlStr;
+        this._id = newId();
+        openWs.set(this._id, this);
+        const path = normalizeToRelPath2(urlStr);
+        (async () => {
+          const p = port ?? await portReady;
+          p.postMessage({ type: "ws.open", id: this._id, path });
+        })();
+      }
+      _handle(msg) {
+        if (msg.type === "ws.opened") {
+          this.readyState = 1;
+          const ev = new Event("open");
+          this.onopen?.(ev);
+          this.dispatchEvent(ev);
+        } else if (msg.type === "ws.message") {
+          const bytes = msg.dataB64 ? b64ToBytes(msg.dataB64) : new Uint8Array(0);
+          let data;
+          if (msg.binary) {
+            data = this.binaryType === "arraybuffer" ? bytes.buffer : new Blob([bytes]);
+          } else {
+            data = new TextDecoder().decode(bytes);
+          }
+          const ev = new MessageEvent("message", { data });
+          this.onmessage?.(ev);
+          this.dispatchEvent(ev);
+        } else if (msg.type === "ws.closed") {
+          this.readyState = 3;
+          const ev = new CloseEvent("close", {
+            code: msg.code ?? 1000,
+            reason: msg.reason ?? ""
+          });
+          this.onclose?.(ev);
+          this.dispatchEvent(ev);
+          openWs.delete(this._id);
+        } else if (msg.type === "ws.error") {
+          const ev = new Event("error");
+          this.onerror?.(ev);
+          this.dispatchEvent(ev);
+        }
+      }
+      send(data) {
+        (async () => {
+          const p = port ?? await portReady;
+          let bytes;
+          let binary = false;
+          if (typeof data === "string") {
+            bytes = new TextEncoder().encode(data);
+          } else if (data instanceof Blob) {
+            bytes = new Uint8Array(await data.arrayBuffer());
+            binary = true;
+          } else if (data instanceof ArrayBuffer) {
+            bytes = new Uint8Array(data);
+            binary = true;
+          } else if (ArrayBuffer.isView(data)) {
+            bytes = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+            binary = true;
+          } else {
+            bytes = new TextEncoder().encode(String(data));
+          }
+          p.postMessage({
+            type: "ws.send",
+            id: this._id,
+            dataB64: bytesToB64(bytes),
+            binary
+          });
+        })();
+      }
+      close(code, reason) {
+        (async () => {
+          const p = port ?? await portReady;
+          p.postMessage({ type: "ws.close", id: this._id, code, reason });
+        })();
+      }
+      addEventListener(type, listener, options) {
+        super.addEventListener(type, listener, options);
+      }
+    }
+
+    class TunnelXHR extends EventTarget {
+      static UNSENT = 0;
+      static OPENED = 1;
+      static HEADERS_RECEIVED = 2;
+      static LOADING = 3;
+      static DONE = 4;
+      UNSENT = 0;
+      OPENED = 1;
+      HEADERS_RECEIVED = 2;
+      LOADING = 3;
+      DONE = 4;
+      readyState = 0;
+      status = 0;
+      statusText = "";
+      responseText = "";
+      response = null;
+      responseType = "";
+      responseURL = "";
+      withCredentials = false;
+      timeout = 0;
+      upload = new EventTarget;
+      onreadystatechange = null;
+      onload = null;
+      onerror = null;
+      onloadend = null;
+      onabort = null;
+      onprogress = null;
+      ontimeout = null;
+      _method = "GET";
+      _url = "";
+      _reqHeaders = [];
+      _respHeaders = [];
+      _aborted = false;
+      open(method, url) {
+        this._method = method;
+        this._url = url;
+        this.readyState = 1;
+        this.onreadystatechange?.();
+      }
+      setRequestHeader(name, value) {
+        this._reqHeaders.push([name, value]);
+      }
+      getAllResponseHeaders() {
+        return this._respHeaders.map(([k, v]) => `${k}: ${v}`).join(`\r
+`);
+      }
+      getResponseHeader(name) {
+        const lc = name.toLowerCase();
+        const hit = this._respHeaders.find(([k]) => k.toLowerCase() === lc);
+        return hit ? hit[1] : null;
+      }
+      abort() {
+        this._aborted = true;
+        this.readyState = 0;
+      }
+      send(body) {
+        if (isExternalUrl2(this._url)) {
+          const real = new originalXHR;
+          real.open(this._method, this._url);
+          for (const [k, v] of this._reqHeaders)
+            real.setRequestHeader(k, v);
+          real.onload = () => {
+            this.status = real.status;
+            this.responseText = real.responseText;
+            this.response = real.response;
+            this.readyState = 4;
+            this.onreadystatechange?.();
+            this.onload?.();
+            this.onloadend?.();
+            this.dispatchEvent(new Event("load"));
+          };
+          real.onerror = () => {
+            this.onerror?.();
+            this.dispatchEvent(new Event("error"));
+          };
+          real.send(body);
+          return;
+        }
+        const relPath = normalizeToRelPath2(this._url);
+        httpReq(this._method, relPath, body ?? null, this._reqHeaders).then((r) => {
+          if (this._aborted)
+            return;
+          this.status = r.status;
+          this._respHeaders = r.headers ?? [];
+          this.responseText = new TextDecoder().decode(r.bytes);
+          if (this.responseType === "arraybuffer") {
+            this.response = r.bytes.buffer;
+          } else if (this.responseType === "blob") {
+            this.response = new Blob([r.bytes]);
+          } else if (this.responseType === "json") {
+            try {
+              this.response = JSON.parse(this.responseText);
+            } catch {
+              this.response = null;
+            }
+          } else {
+            this.response = this.responseText;
+          }
+          this.readyState = 4;
+          this.onreadystatechange?.();
+          this.onload?.();
+          this.onloadend?.();
+          this.dispatchEvent(new Event("load"));
+        }, () => {
+          if (this._aborted)
+            return;
+          this.onerror?.();
+          this.dispatchEvent(new Event("error"));
+        });
+      }
+    }
+
+    class TunnelEventSource extends EventTarget {
+      static CONNECTING = 0;
+      static OPEN = 1;
+      static CLOSED = 2;
+      readyState = 0;
+      url;
+      withCredentials = false;
+      onopen = null;
+      onmessage = null;
+      onerror = null;
+      constructor(url) {
+        super();
+        this.url = String(url);
+        (async () => {
+          try {
+            const relPath = normalizeToRelPath2(this.url);
+            const r = await httpReq("GET", relPath, null, [
+              ["accept", "text/event-stream"]
+            ]);
+            this.readyState = 1;
+            this.onopen?.(new Event("open"));
+            const text = new TextDecoder().decode(r.bytes);
+            for (const block of text.split(/\n\n/)) {
+              const data = block.split(`
+`).filter((l) => l.startsWith("data:")).map((l) => l.slice(5).trim()).join(`
+`);
+              if (data) {
+                const ev = new MessageEvent("message", { data });
+                this.onmessage?.(ev);
+                this.dispatchEvent(ev);
+              }
+            }
+            this.readyState = 2;
+          } catch {
+            this.onerror?.(new Event("error"));
+          }
+        })();
+      }
+      close() {
+        this.readyState = 2;
+      }
+    }
+    const SELF_HREF = (() => {
+      try {
+        return globalThis.location?.href ?? "";
+      } catch {
+        return "";
+      }
+    })();
+    const SELF_BASE_DIR = computeSelfBaseDir(SELF_HREF);
+    const objectUrls = new Set;
+    function isSelfOriginUrl2(u) {
+      return isSelfOriginUrl(u, SELF_BASE_DIR, SELF_HREF, objectUrls);
+    }
+    function isExternalUrl2(u) {
+      return isExternalUrl(u, SELF_BASE_DIR, SELF_HREF, objectUrls);
+    }
+    function normalizeToRelPath2(u) {
+      return normalizeToRelPath(u, SELF_BASE_DIR);
+    }
+    const URL_ATTRS = new Set([
+      "src",
+      "srcset",
+      "href",
+      "poster",
+      "action",
+      "formaction",
+      "data",
+      "background",
+      "cite",
+      "longdesc",
+      "usemap",
+      "manifest"
+    ]);
+    const URL_STYLE_PROPS = new Set([
+      "background",
+      "backgroundImage",
+      "background-image",
+      "borderImage",
+      "border-image",
+      "borderImageSource",
+      "border-image-source",
+      "listStyle",
+      "list-style",
+      "listStyleImage",
+      "list-style-image",
+      "cursor",
+      "mask",
+      "maskImage",
+      "mask-image",
+      "webkitMask",
+      "-webkit-mask",
+      "webkitMaskImage",
+      "-webkit-mask-image",
+      "content",
+      "src"
+    ]);
+    const __BLOB_CACHE_MAX = 256;
+    const __BLOB_REVOKE_DELAY_MS = 30000;
+    const blobCache = new Map;
+    const blobStats = {
+      created: 0,
+      revoked: 0,
+      hits: 0,
+      misses: 0,
+      inFlightRevokes: 0
+    };
+    function __evictIfOverCap() {
+      while (blobCache.size > __BLOB_CACHE_MAX) {
+        const oldestKey = blobCache.keys().next().value;
+        if (oldestKey === undefined)
+          break;
+        const ent = blobCache.get(oldestKey);
+        blobCache.delete(oldestKey);
+        blobStats.inFlightRevokes++;
+        const t = setTimeout(() => {
+          ent.url.then((u) => {
+            if (typeof u === "string" && u.startsWith("blob:")) {
+              try {
+                URL.revokeObjectURL(u);
+                blobStats.revoked++;
+              } catch {}
+            }
+          }).finally(() => {
+            blobStats.inFlightRevokes--;
+          });
+        }, __BLOB_REVOKE_DELAY_MS);
+        ent.pendingRevoke = t;
+      }
+    }
+    function resolveToBlobUrl(rel) {
+      if (isExternalUrl2(rel))
+        return Promise.resolve(rel);
+      const hashIdx = rel.indexOf("#");
+      const pathPart = hashIdx >= 0 ? rel.slice(0, hashIdx) : rel;
+      const frag = hashIdx >= 0 ? rel.slice(hashIdx) : "";
+      const key = normalizeToRelPath2(pathPart);
+      let ent = blobCache.get(key);
+      if (ent) {
+        if (ent.pendingRevoke != null) {
+          clearTimeout(ent.pendingRevoke);
+          ent.pendingRevoke = undefined;
+          blobStats.inFlightRevokes--;
+        }
+        blobCache.delete(key);
+        blobCache.set(key, ent);
+        blobStats.hits++;
+      } else {
+        blobStats.misses++;
+        const url = httpReq("GET", key, null).then((r) => {
+          const ctHeader = r.headers.find(([k]) => k.toLowerCase() === "content-type");
+          const ct = ctHeader?.[1] ?? "application/octet-stream";
+          const blob = new Blob([r.bytes], { type: ct });
+          blobStats.created++;
+          return URL.createObjectURL(blob);
+        });
+        ent = { url };
+        blobCache.set(key, ent);
+        __evictIfOverCap();
+      }
+      return frag ? ent.url.then((b) => b + frag) : ent.url;
+    }
+    const HATCH_PIXEL_PREFIX = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
+    const HATCH_FRAG = "#hatch=";
+    function isHatchPlaceholder(url) {
+      return url.indexOf(HATCH_PIXEL_PREFIX + HATCH_FRAG) === 0;
+    }
+    function unwrapHatchPlaceholder(url) {
+      if (!isHatchPlaceholder(url))
+        return null;
+      return decodeURIComponent(url.slice((HATCH_PIXEL_PREFIX + HATCH_FRAG).length));
+    }
+    async function rewriteCssTextAsync(text) {
+      const re = /url\(\s*(['"]?)([^'")]+)\1\s*\)/g;
+      const tasks = [];
+      let m;
+      while ((m = re.exec(text)) !== null) {
+        tasks.push({ match: m[0], index: m.index, url: m[2].trim() });
+      }
+      if (tasks.length === 0)
+        return text;
+      const resolved = await Promise.all(tasks.map(async (t) => {
+        if (t.url.startsWith("blob:"))
+          return t.url;
+        const unwrapped = unwrapHatchPlaceholder(t.url);
+        if (unwrapped != null) {
+          try {
+            return await resolveToBlobUrl(unwrapped);
+          } catch {
+            return t.url;
+          }
+        }
+        if (isExternalUrl2(t.url))
+          return t.url;
+        try {
+          return await resolveToBlobUrl(t.url);
+        } catch {
+          return t.url;
+        }
+      }));
+      let out = "";
+      let last = 0;
+      tasks.forEach((t, i) => {
+        out += text.slice(last, t.index);
+        out += `url("${resolved[i]}")`;
+        last = t.index + t.match.length;
+      });
+      out += text.slice(last);
+      return out;
+    }
+    function rewriteCssText(text) {
+      return rewriteCssTextAsync(text);
+    }
+    const mediaSourceLoads = new WeakMap;
+    window.addEventListener("error", (event) => {
+      const source = event.target;
+      if (!event.isTrusted || !(source instanceof HTMLSourceElement) || !(source.parentElement instanceof HTMLMediaElement) || source.hasAttribute("src"))
+        return;
+      const state = mediaSourceLoads.get(source);
+      if (state === "pending" || state === undefined && source.hasAttribute("data-hatch-src")) {
+        event.stopImmediatePropagation();
+      }
+    }, true);
+    function isElement(el) {
+      if (el instanceof Element)
+        return true;
+      const ownerWindow = el?.ownerDocument?.defaultView;
+      return ownerWindow != null && el instanceof ownerWindow.Element;
+    }
+    function setAttr(el, name, value, ...rest) {
+      if (!isElement(el)) {
+        return el.setAttribute(name, value, ...rest);
+      }
+      name = String(name);
+      if (value == null) {
+        if (name.toLowerCase() === "src" && el instanceof HTMLSourceElement) {
+          mediaSourceLoads.set(el, "settled");
+        }
+        try {
+          el.removeAttribute(name);
+        } catch {}
+        return;
+      }
+      const v = String(value);
+      const lcName = name.toLowerCase();
+      const tag = el.tagName?.toUpperCase();
+      if ((tag === "A" || tag === "BASE" || tag === "AREA") && lcName === "href") {
+        el.setAttribute(name, v);
+        return;
+      }
+      if (!URL_ATTRS.has(lcName) && lcName !== "style" && lcName !== "srcset") {
+        el.setAttribute(name, v);
+        return;
+      }
+      if (lcName === "srcset") {
+        const parts = v.split(",").map((s) => s.trim()).filter(Boolean);
+        Promise.all(parts.map(async (p) => {
+          const segs = p.split(/\s+/);
+          const url = segs[0];
+          const rest = segs.slice(1).join(" ");
+          if (isExternalUrl2(url))
+            return p;
+          const resolved = await resolveToBlobUrl(url);
+          return rest ? `${resolved} ${rest}` : resolved;
+        })).then((rebuilt) => {
+          try {
+            el.setAttribute("srcset", rebuilt.join(", "));
+          } catch {}
+        });
+        return;
+      }
+      if (URL_ATTRS.has(lcName)) {
+        const isMediaSource = tag === "SOURCE" && lcName === "src";
+        if (isExternalUrl2(v)) {
+          if (isMediaSource)
+            mediaSourceLoads.set(el, "settled");
+          el.setAttribute(name, v);
+          return;
+        }
+        if (isMediaSource)
+          mediaSourceLoads.set(el, "pending");
+        if (tag === "IMG" || tag === "VIDEO" && lcName === "poster") {
+          el.setAttribute(name, TRANSPARENT_PIXEL);
+        }
+        resolveToBlobUrl(v).then((blobUrl) => {
+          if (isMediaSource)
+            mediaSourceLoads.set(el, "settled");
+          try {
+            el.setAttribute(name, blobUrl);
+            if (isMediaSource) {
+              const media = el.parentElement;
+              if (media instanceof HTMLMediaElement && media.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) {
+                const nextSibling = el.nextSibling;
+                el.remove();
+                media.insertBefore(el, nextSibling);
+              }
+            }
+          } catch {}
+        }, () => {
+          if (isMediaSource) {
+            mediaSourceLoads.set(el, "settled");
+            el.dispatchEvent(new Event("error"));
+          }
+        });
+        return;
+      }
+      if (lcName === "style") {
+        setStyleAttr(el, v);
+        return;
+      }
+      el.setAttribute(name, v);
+    }
+    function setAttrNS(el, ns, name, value, ...rest) {
+      if (!isElement(el)) {
+        return el.setAttributeNS(ns, name, value, ...rest);
+      }
+      name = String(name);
+      if (value == null) {
+        try {
+          el.removeAttributeNS(ns ?? null, name);
+        } catch {}
+        return;
+      }
+      const v = String(value);
+      const lcName = name.split(":").pop().toLowerCase();
+      if (lcName === "href" && URL_ATTRS.has("href")) {
+        if (isExternalUrl2(v)) {
+          el.setAttributeNS(ns ?? null, name, v);
+          return;
+        }
+        resolveToBlobUrl(v).then((blobUrl) => {
+          try {
+            el.setAttributeNS(ns ?? null, name, blobUrl);
+          } catch {}
+        }, () => {});
+        return;
+      }
+      try {
+        el.setAttributeNS(ns ?? null, name, v);
+      } catch {}
+    }
+    function setUrlProp(el, name, value) {
+      if (isElement(el)) {
+        setAttr(el, name.toLowerCase(), value);
+      } else {
+        el[name] = value;
+      }
+      return value;
+    }
+    const TRANSPARENT_PIXEL = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
+    const HTML_TAG_ATTRS = {
+      img: ["src", "srcset", "poster"],
+      image: ["href"],
+      video: ["src", "poster"],
+      audio: ["src"],
+      source: ["src", "srcset"],
+      script: ["src"],
+      link: ["href"],
+      iframe: ["src"],
+      embed: ["src"],
+      object: ["data"],
+      track: ["src"],
+      input: ["src"],
+      form: ["action"],
+      button: ["formaction"],
+      use: ["href"]
+    };
+    function rewriteHtmlString(html) {
+      return html.replace(/<([a-zA-Z][a-zA-Z0-9-]*)\b([^>]*)>/g, (m, tag, attrs) => {
+        const lc = String(tag).toLowerCase();
+        const candidates = HTML_TAG_ATTRS[lc];
+        if (!candidates)
+          return m;
+        let out = attrs;
+        for (const a of candidates) {
+          const re = new RegExp(`\\b${a}\\s*=\\s*("([^"]*)"|'([^']*)'|([^\\s>]+))`, "i");
+          const matched = out.match(re);
+          if (!matched)
+            continue;
+          const value = matched[2] ?? matched[3] ?? matched[4] ?? "";
+          if (isExternalUrl2(value))
+            continue;
+          out = out.replace(re, `data-hatch-${a}="${value.replace(/"/g, "&quot;")}"`);
+        }
+        const styleRe = /\bstyle\s*=\s*("([^"]*)"|'([^']*)')/i;
+        const sm = out.match(styleRe);
+        if (sm) {
+          const value = sm[2] ?? sm[3] ?? "";
+          if (value.includes("url(")) {
+            out = out.replace(styleRe, `data-hatch-style="${value.replace(/"/g, "&quot;")}"`);
+          }
+        }
+        return `<${tag}${out}>`;
+      });
+    }
+    const HTML_URL_ATTRS_BY_TAG = {
+      IMG: ["src", "srcset", "poster"],
+      IMAGE: ["href"],
+      VIDEO: ["src", "poster"],
+      AUDIO: ["src"],
+      SOURCE: ["src", "srcset"],
+      SCRIPT: ["src"],
+      LINK: ["href"],
+      IFRAME: ["src"],
+      EMBED: ["src"],
+      OBJECT: ["data"],
+      TRACK: ["src"],
+      INPUT: ["src"],
+      FORM: ["action"],
+      BUTTON: ["formaction"],
+      USE: ["href", "xlink:href"]
+    };
+    function rewriteSubtreeForTunnel(root) {
+      if (!root)
+        return;
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
+      let n = walker.currentNode;
+      if (root.nodeType === 1)
+        processOne(root);
+      while (n = walker.nextNode()) {
+        processOne(n);
+      }
+    }
+    function processOne(el) {
+      const tag = (el.tagName ?? "").toUpperCase();
+      const attrs = HTML_URL_ATTRS_BY_TAG[tag];
+      if (attrs) {
+        for (const a of attrs) {
+          const v = el.getAttribute(a);
+          if (v == null)
+            continue;
+          if (isExternalUrl2(v))
+            continue;
+          el.setAttribute("data-hatch-" + a, v);
+          el.removeAttribute(a);
+        }
+      }
+      const style = el.getAttribute("style");
+      if (style && style.includes("url(")) {
+        el.setAttribute("data-hatch-style", style);
+        el.removeAttribute("style");
+      }
+    }
+    function parseAndCleanHtml(html) {
+      const tpl = document.createElement("template");
+      tpl.innerHTML = html;
+      rewriteSubtreeForTunnel(tpl.content);
+      return tpl.content;
+    }
+    function setInnerHTML(el, html, which = "innerHTML") {
+      const s = html == null ? "" : String(html);
+      if (which === "innerHTML" && typeof el.tagName === "string" && el.tagName.toUpperCase() === "TEMPLATE") {
+        try {
+          el.innerHTML = s;
+        } catch {}
+        return;
+      }
+      if (which === "outerHTML") {
+        const frag = parseAndCleanHtml(s);
+        const wrap = document.createElement("div");
+        wrap.appendChild(frag);
+        try {
+          el.outerHTML = wrap.innerHTML;
+        } catch {}
+        queueMicrotask(() => processDataHatchAttrs(document.body));
+        return;
+      }
+      const frag = parseAndCleanHtml(s);
+      try {
+        while (el.firstChild)
+          el.removeChild(el.firstChild);
+        el.appendChild(frag);
+      } catch {}
+      queueMicrotask(() => processDataHatchAttrs(el));
+    }
+    function insertAdjacentHTMLT(el, position, html) {
+      const s = html == null ? "" : String(html);
+      const frag = parseAndCleanHtml(s);
+      const wrap = document.createElement("template");
+      wrap.content.appendChild(frag);
+      try {
+        el.insertAdjacentHTML(position, wrap.innerHTML);
+      } catch {}
+      queueMicrotask(() => processDataHatchAttrs(document.body));
+    }
+    function processDataHatchAttrs(root) {
+      const SELECTORS = "[data-hatch-src], [data-hatch-href], [data-hatch-srcset], [data-hatch-poster], [data-hatch-action], [data-hatch-data], [data-hatch-style]";
+      root.querySelectorAll(SELECTORS).forEach((el) => {
+        const attrs = el.getAttributeNames();
+        for (const a of attrs) {
+          if (!a.startsWith("data-hatch-"))
+            continue;
+          const real = a.slice("data-hatch-".length);
+          const value = el.getAttribute(a) ?? "";
+          el.removeAttribute(a);
+          if (real === "style")
+            setStyleAttr(el, value);
+          else
+            setAttr(el, real, value);
+        }
+      });
+    }
+    const styleProxyCache = new WeakMap;
+    function getStyle(el) {
+      if (el == null)
+        return el;
+      let real;
+      try {
+        real = el.style;
+      } catch {
+        return;
+      }
+      if (real == null || typeof real !== "object" && typeof real !== "function") {
+        return real;
+      }
+      let proxy = styleProxyCache.get(real);
+      if (proxy)
+        return proxy;
+      proxy = new Proxy(real, {
+        get(target, prop, _receiver) {
+          const v = Reflect.get(target, prop, target);
+          if (typeof v === "function")
+            return v.bind(target);
+          return v;
+        },
+        set(target, prop, value) {
+          if (typeof prop === "string") {
+            setStyle(el, prop, value);
+            return true;
+          }
+          return Reflect.set(target, prop, value, target);
+        }
+      });
+      styleProxyCache.set(real, proxy);
+      return proxy;
+    }
+    function setStyle(el, propName, value) {
+      const v = value == null ? "" : String(value);
+      if (propName.startsWith("--")) {
+        rewriteCssText(v).then((rewritten) => {
+          try {
+            el.style.setProperty(propName, rewritten);
+          } catch {}
+        });
+        return;
+      }
+      if (URL_STYLE_PROPS.has(propName) && v.includes("url(")) {
+        rewriteCssText(v).then((rewritten) => {
+          try {
+            el.style[propName] = rewritten;
+          } catch {}
+        });
+        return;
+      }
+      try {
+        el.style[propName] = v;
+      } catch {}
+    }
+    function setStyleAttr(el, attrValue) {
+      if (!attrValue.includes("url(")) {
+        el.setAttribute("style", attrValue);
+        return;
+      }
+      rewriteCssText(attrValue).then((rewritten) => {
+        try {
+          el.setAttribute("style", rewritten);
+        } catch {}
+      });
+    }
+    function setStyleText(styleEl, text) {
+      if (!(styleEl instanceof HTMLStyleElement)) {
+        try {
+          styleEl.textContent = text;
+        } catch {}
+        return;
+      }
+      if (!text.includes("url(")) {
+        styleEl.textContent = text;
+        return;
+      }
+      rewriteCssText(text).then((rewritten) => {
+        try {
+          styleEl.textContent = rewritten;
+        } catch {}
+      });
+    }
+    function tunnelImage(_w, _h) {
+      const img = new originalImage;
+      const desc = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, "src");
+      if (desc?.set) {
+        const origSet = desc.set;
+        const origGet = desc.get;
+        Object.defineProperty(img, "src", {
+          configurable: true,
+          get() {
+            return origGet.call(img);
+          },
+          set(v) {
+            if (v == null)
+              return origSet.call(img, "");
+            const s = String(v);
+            if (isExternalUrl2(s))
+              return origSet.call(img, s);
+            resolveToBlobUrl(s).then((b) => origSet.call(img, b), () => origSet.call(img, s));
+          }
+        });
+      }
+      return img;
+    }
+    function tunnelSendBeacon(url, data) {
+      tunnelFetch(url, { method: "POST", body: data, keepalive: true }).catch(() => {});
+      return true;
+    }
+    function tunnelWorker(_url) {
+      throw new Error("[__tunnel] new Worker() is not supported in Muse web artifacts.");
+    }
+    function tunnelImport(spec) {
+      throw new Error("[__tunnel] dynamic import() of '" + String(spec) + "' is not supported in Muse web artifacts.");
+    }
+    function installCssObserver() {
+      try {
+        const proto = window.CSSStyleSheet?.prototype;
+        if (proto) {
+          const origInsertRule = proto.insertRule;
+          proto.insertRule = function(rule, index) {
+            if (typeof rule === "string" && rule.includes("url(")) {
+              const idx = origInsertRule.call(this, rule, index);
+              rewriteCssText(rule).then((rewritten) => {
+                if (rewritten !== rule) {
+                  try {
+                    this.deleteRule(idx);
+                    origInsertRule.call(this, rewritten, idx);
+                  } catch {}
+                }
+              });
+              return idx;
+            }
+            return origInsertRule.call(this, rule, index);
+          };
+          const origReplace = proto.replace;
+          if (origReplace) {
+            proto.replace = function(text) {
+              if (typeof text === "string" && text.includes("url(")) {
+                return rewriteCssText(text).then((rewritten) => origReplace.call(this, rewritten));
+              }
+              return origReplace.call(this, text);
+            };
+          }
+          const origReplaceSync = proto.replaceSync;
+          if (origReplaceSync) {
+            proto.replaceSync = function(text) {
+              if (typeof text === "string" && text.includes("url(")) {
+                const ret = origReplaceSync.call(this, text);
+                rewriteCssText(text).then((rewritten) => {
+                  try {
+                    origReplaceSync.call(this, rewritten);
+                  } catch {}
+                });
+                return ret;
+              }
+              return origReplaceSync.call(this, text);
+            };
+          }
+        }
+      } catch (e) {}
+      function sweepSheet(sheet) {
+        try {
+          const rules = sheet.cssRules;
+          for (let i = 0;i < rules.length; i++) {
+            const rule = rules[i];
+            const txt = rule.cssText;
+            if (txt && (txt.includes(HATCH_FRAG) || txt.includes("url(") && !/url\(\s*["']?(blob:|https?:|data:image\/gif;base64,R0)/.test(txt))) {
+              rewriteCssText(txt).then((rewritten) => {
+                if (rewritten !== txt) {
+                  try {
+                    sheet.deleteRule(i);
+                    sheet.insertRule(rewritten, i);
+                  } catch {}
+                }
+              });
+            }
+          }
+        } catch {}
+      }
+      function sweepAll() {
+        for (const sheet of Array.from(document.styleSheets)) {
+          sweepSheet(sheet);
+        }
+      }
+      const mo = new MutationObserver((mutations) => {
+        for (const m of mutations) {
+          for (const node of Array.from(m.addedNodes)) {
+            if (node instanceof HTMLStyleElement) {
+              const txt = node.textContent ?? "";
+              if (txt.includes("url(")) {
+                rewriteCssText(txt).then((rewritten) => {
+                  if (rewritten !== txt) {
+                    try {
+                      node.textContent = rewritten;
+                    } catch {}
+                  }
+                });
+              }
+            } else if (node instanceof HTMLLinkElement && node.rel === "stylesheet") {
+              node.addEventListener("load", () => sweepSheet(node.sheet), { once: true });
+            }
+          }
+        }
+      });
+      mo.observe(document, { subtree: true, childList: true });
+      Promise.resolve().then(sweepAll);
+      setTimeout(sweepAll, 0);
+      setTimeout(sweepAll, 50);
+      setTimeout(sweepAll, 250);
+    }
+    function rewriteAuthoredHtml() {
+      const SELECTORS = "[data-hatch-src], [data-hatch-href], [data-hatch-srcset]";
+      document.querySelectorAll(SELECTORS).forEach((el) => {
+        const src = el.getAttribute("data-hatch-src");
+        const href = el.getAttribute("data-hatch-href");
+        const srcset = el.getAttribute("data-hatch-srcset");
+        if (src)
+          setAttr(el, "src", src);
+        if (href)
+          setAttr(el, "href", href);
+        if (srcset)
+          setAttr(el, "srcset", srcset);
+      });
+    }
+    let historyUrlWarned = false;
+    function warnHistoryUrlDropped(method, url) {
+      if (url === undefined || url === null)
+        return;
+      if (historyUrlWarned)
+        return;
+      historyUrlWarned = true;
+      try {
+        console.warn("[__tunnel] history." + method + "() was called with a URL; the URL was ignored. A Muse web artifact " + "renders in an opaque origin with no navigable URL of its own, so " + "the browser rejects any URL change. State kept in the URL will not " + "persist or survive a reload — keep it in component state, or in " + "the artifact's database through a server action.");
+      } catch {}
+    }
+    const originalFetch = globalThis.fetch?.bind(globalThis) ?? (() => {
+      throw new Error("no native fetch");
+    });
+    const originalXHR = globalThis.XMLHttpRequest;
+    const originalImage = globalThis.Image;
+    const tunnel = {
+      fetch: tunnelFetch,
+      XHR: TunnelXHR,
+      WebSocket: TunnelWebSocket,
+      EventSource: TunnelEventSource,
+      Image: tunnelImage,
+      Worker: tunnelWorker,
+      import: tunnelImport,
+      sendBeacon: tunnelSendBeacon,
+      setAttr,
+      setAttrNS,
+      setUrlProp,
+      setStyle,
+      getStyle,
+      setStyleAttr,
+      setStyleText,
+      setInnerHTML,
+      insertAdjacentHTML: insertAdjacentHTMLT,
+      rewriteCssText,
+      resolveToBlobUrl,
+      processDataHatchAttrs,
+      rewriteHtmlString,
+      _resolveUrlString: (v) => v,
+      _resolveCssValue: (v) => v,
+      _resolveCssText: (v) => v,
+      _resolveStyleProp: (v) => v,
+      _importMeta: {
+        get url() {
+          return importMetaUrl(SELF_HREF, SELF_BASE_DIR);
+        }
+      },
+      _state: {
+        get port() {
+          return port;
+        },
+        get inFlight() {
+          return pending.size;
+        },
+        get blobCacheSize() {
+          return blobCache.size;
+        },
+        get blobStats() {
+          return { ...blobStats };
+        }
+      }
+    };
+    globalThis.__tunnel = tunnel;
+    window.__tunnel = tunnel;
+    try {
+      globalThis.fetch = tunnelFetch;
+      window.fetch = tunnelFetch;
+      globalThis.XMLHttpRequest = TunnelXHR;
+      window.XMLHttpRequest = TunnelXHR;
+      globalThis.WebSocket = TunnelWebSocket;
+      window.WebSocket = TunnelWebSocket;
+      globalThis.EventSource = TunnelEventSource;
+      window.EventSource = TunnelEventSource;
+      const nav = globalThis.navigator;
+      if (nav && typeof nav.sendBeacon === "function") {
+        nav.sendBeacon = (url, data) => tunnelSendBeacon(url, data);
+      }
+      const NativeURL = globalThis.URL;
+      const TunnelURL = function(url, base) {
+        return resolveTunnelUrl(url, base, SELF_HREF, NativeURL);
+      };
+      TunnelURL.prototype = NativeURL.prototype;
+      for (const k of Object.getOwnPropertyNames(NativeURL)) {
+        if (k === "prototype" || k === "length" || k === "name")
+          continue;
+        try {
+          TunnelURL[k] = NativeURL[k];
+        } catch {}
+      }
+      globalThis.URL = TunnelURL;
+      window.URL = TunnelURL;
+    } catch {}
+    try {
+      const hist = globalThis.history;
+      if (hist && typeof hist.pushState === "function" && typeof hist.replaceState === "function") {
+        const nativePushState = hist.pushState.bind(hist);
+        const nativeReplaceState = hist.replaceState.bind(hist);
+        hist.pushState = function(state, title, url) {
+          warnHistoryUrlDropped("pushState", url);
+          return nativePushState(state, title ?? "");
+        };
+        hist.replaceState = function(state, title, url) {
+          warnHistoryUrlDropped("replaceState", url);
+          return nativeReplaceState(state, title ?? "");
+        };
+      }
+    } catch {}
+    try {
+      const nativeCreateObjectURL = URL.createObjectURL.bind(URL);
+      const nativeRevokeObjectURL = URL.revokeObjectURL.bind(URL);
+      URL.createObjectURL = function(obj) {
+        const created = nativeCreateObjectURL(obj);
+        try {
+          objectUrls.add(created);
+        } catch {}
+        return created;
+      };
+      URL.revokeObjectURL = function(objectUrl) {
+        try {
+          objectUrls.delete(objectUrl);
+        } catch {}
+        nativeRevokeObjectURL(objectUrl);
+      };
+    } catch {}
+    const announceEpoch = Math.random().toString(36).slice(2) + "-" + Date.now().toString(36);
+    let announceTimer = null;
+    function announce() {
+      try {
+        window.parent.postMessage({ type: "bundle:ready", epoch: announceEpoch }, "*");
+      } catch {}
+    }
+    function startAnnouncing() {
+      announce();
+      announceTimer = setInterval(() => {
+        if (port != null) {
+          if (announceTimer != null)
+            clearInterval(announceTimer);
+          announceTimer = null;
+          return;
+        }
+        announce();
+      }, 120);
+    }
+    function onParentMessage(ev) {
+      const data = ev.data;
+      if (!data || typeof data !== "object")
+        return;
+      if (data.type === "bundle:init-port" && ev.ports && ev.ports[0]) {
+        if (port != null)
+          return;
+        if (announceTimer != null) {
+          clearInterval(announceTimer);
+          announceTimer = null;
+        }
+        port = ev.ports[0];
+        port.onmessage = (pe) => {
+          const msg = pe.data;
+          if (!msg || typeof msg !== "object")
+            return;
+          if (msg.type === "http.res") {
+            const ent = pending.get(msg.id);
+            if (ent) {
+              pending.delete(msg.id);
+              ent.resolve(msg);
+            }
+          } else if (msg.type === "ws.opened" || msg.type === "ws.message" || msg.type === "ws.closed" || msg.type === "ws.error") {
+            openWs.get(msg.id)?._handle(msg);
+          }
+        };
+        port.start?.();
+        portReadyResolve?.(port);
+        installCssObserver();
+        rewriteAuthoredHtml();
+        try {
+          window.parent.postMessage({ type: "bundle:port-attached" }, "*");
+        } catch {}
+      }
+    }
+    window.addEventListener("message", onParentMessage);
+    installDownloadLinks(tunnelFetch, isExternalUrl2, __BLOB_REVOKE_DELAY_MS);
+    if (document.readyState === "complete" || document.readyState === "interactive") {
+      startAnnouncing();
+    } else {
+      document.addEventListener("DOMContentLoaded", startAnnouncing);
+    }
+  })();
+})();
+
+;
+"use strict";
+var A = "assets/";
+var ANGLES = [{
+  id: "front",
+  label: "Front",
+  zh: "正面"
+}, {
+  id: "right",
+  label: "Right",
+  zh: "右侧"
+}, {
+  id: "back",
+  label: "Back",
+  zh: "背面"
+}, {
+  id: "left",
+  label: "Left",
+  zh: "左侧"
+}];
+var FULL_SET = {
+  red: A + "full-red.mp4",
+  gym: A + "full-gym.mp4"
+};
+var MOVES = [{
+  id: 1,
+  en: "Holding Up the Heavens",
+  zh: "双手托天理三焦",
+  shortZh: "托天",
+  focus: "Full-body stretch · posture",
+  steps: ["Interlace your fingers below the navel, palms facing up.", "Inhale and raise the hands in front of the body; at chest height turn the palms up and push overhead.", "Push up fully — the heels may lift slightly as you reach.", "Exhale and lower the hands down along the sides."],
+  breathing: "Inhale on the way up, exhale on the way down.",
+  mistake: "Shrugging the shoulders — keep them down and away from the ears.",
+  front: {
+    red: A + "red-form1.mp4",
+    gym: A + "gym-form1.mp4"
+  },
+  angles: {
+    front: A + "red-form1.mp4",
+    right: A + "red-form1-right.mp4",
+    back: A + "red-form1-back.mp4",
+    left: A + "red-form1-left.mp4"
+  },
+  composite: A + "form1-4angles.mp4",
+  chapterStart: 0
+}, {
+  id: 2,
+  en: "Drawing the Bow to Shoot the Eagle",
+  zh: "左右开弓似射雕",
+  shortZh: "开弓",
+  focus: "Chest & arms · leg strength",
+  steps: ["Step wide into a horse stance, knees bent, thighs strong.", "Inhale and draw the bow: one arm extends at shoulder height as if aiming, the other elbow pulls back as if drawing a bowstring.", "Let the eyes follow the extended hand.", "Exhale, return to center, then repeat on the other side."],
+  breathing: "Inhale as you draw the bow, exhale as you release back to center.",
+  mistake: "Stance too narrow, or leaning toward the extended arm.",
+  front: {
+    red: A + "red-form2.mp4",
+    gym: A + "gym-form2.mp4"
+  },
+  angles: {
+    front: A + "red-form2.mp4",
+    right: A + "red-form2-right.mp4",
+    back: A + "red-form2-back.mp4"
+  },
+  chapterStart: 73
+}, {
+  id: 3,
+  en: "Single Arm Lift for the Spleen and Stomach",
+  zh: "调理脾胃须单举",
+  shortZh: "单举",
+  focus: "Side stretch · digestion",
+  steps: ["Stand tall, one hand in front of the belly, palm up.", "That palm pushes up overhead while the other hand presses down by the hip.", "Feel the whole side of the torso stretch open.", "Lower slowly and alternate sides."],
+  breathing: "Inhale as one hand rises and the other presses down; exhale as they return.",
+  mistake: "Leaning sideways instead of stretching up and down.",
+  front: {
+    red: A + "red-form3.mp4",
+    gym: A + "gym-form3.mp4"
+  },
+  angles: {
+    front: A + "red-form3.mp4",
+    left: A + "red-form3-left.mp4"
+  },
+  chapterStart: 146
+}, {
+  id: 4,
+  en: "Looking Backward to Heal the Five Strains",
+  zh: "五劳七伤往后瞧",
+  shortZh: "往后瞧",
+  focus: "Neck & spine · gentle rotation",
+  steps: ["Stand still with the arms relaxed at your sides.", "Turn ONLY the head to look back over one shoulder.", "Return to center, then look back over the other shoulder.", "Shoulders and hips stay facing forward the whole time."],
+  breathing: "Breathe naturally and evenly; exhale softly as the head turns.",
+  mistake: "Rotating the whole body — only the head turns.",
+  front: {
+    red: A + "red-form4.mp4",
+    gym: A + "gym-form4.mp4"
+  },
+  angles: {
+    front: A + "red-form4.mp4",
+    back: A + "red-form4-back.mp4",
+    left: A + "red-form4-left.mp4"
+  },
+  chapterStart: 219
+}, {
+  id: 5,
+  en: "Swaying the Head and Tail to Calm the Heart",
+  zh: "摇头摆尾去心火",
+  shortZh: "摇头摆尾",
+  focus: "Spine mobility · coordination",
+  steps: ["Take a wide horse stance and rest the hands on the knees, leaning slightly forward.", "Sway the head and upper body in a slow arc from side to side.", "Let the hips sway in the opposite direction, like a tail.", "Keep the motion continuous and flowing, like water."],
+  breathing: "Slow, continuous breathing that follows the sway.",
+  mistake: "A stiff neck — keep the movement loose and flowing.",
+  front: {
+    red: A + "red-form5.mp4",
+    gym: A + "gym-form5.mp4"
+  },
+  angles: {
+    front: A + "red-form5.mp4",
+    back: A + "red-form5-back.mp4",
+    left: A + "red-form5-left.mp4"
+  },
+  chapterStart: 292
+}, {
+  id: 6,
+  en: "Hands Clasping the Feet to Strengthen the Kidneys",
+  zh: "两手攀足固肾腰",
+  shortZh: "攀足",
+  focus: "Back & hamstrings · lower back",
+  steps: ["Raise both arms overhead.", "Fold forward, sliding the hands down the backs of the legs to the feet.", "Pause at the bottom without bouncing.", "Rise back up with the hands supporting the lower back, finishing with a slight backbend."],
+  breathing: "Exhale as you fold down, inhale as you rise.",
+  mistake: "Bouncing at the bottom, or holding your breath.",
+  front: {
+    red: A + "red-form6.mp4",
+    gym: A + "gym-form6.mp4"
+  },
+  angles: {
+    front: A + "red-form6.mp4",
+    right: A + "red-form6-right.mp4",
+    back: A + "red-form6-back.mp4",
+    left: A + "red-form6-left.mp4"
+  },
+  composite: A + "form6-4angles.mp4",
+  chapterStart: 365
+}, {
+  id: 7,
+  en: "Punching with an Angry Gaze",
+  zh: "攒拳怒目增气力",
+  shortZh: "攒拳",
+  focus: "Arm power · focus",
+  steps: ["Settle into a horse stance with both fists at the waist.", "Punch one fist forward slowly, twisting the forearm as it extends.", "Open the hand, grab, and pull the fist back to the waist.", "Fix a fierce gaze on the punching hand; alternate sides."],
+  breathing: "Exhale through the punch, inhale as the fist draws back.",
+  mistake: "Punching fast — the power comes from slowness and tension.",
+  front: {
+    red: A + "red-form7.mp4",
+    gym: A + "gym-form7.mp4"
+  },
+  angles: {
+    front: A + "red-form7.mp4",
+    back: A + "red-form7-back.mp4"
+  },
+  chapterStart: 438
+}, {
+  id: 8,
+  en: "Bouncing on the Toes to Dispel Illness",
+  zh: "背后七颠百病消",
+  shortZh: "颠足",
+  focus: "Balance · whole-body release",
+  steps: ["Stand with the feet together, body tall and relaxed.", "Rise onto the toes, lifting both heels as high as comfortable.", "Hold for one beat at the top.", "Drop the heels with a small bounce. Repeat 7 times."],
+  breathing: "Inhale as you rise, exhale as the heels drop.",
+  mistake: "Bending the knees — the legs stay straight, only the heels move.",
+  front: {
+    red: A + "red-form8.mp4",
+    gym: A + "gym-form8.mp4"
+  },
+  angles: {
+    front: A + "red-form8.mp4",
+    right: A + "red-form8-right.mp4",
+    back: A + "red-form8-back.mp4",
+    left: A + "red-form8-left.mp4"
+  },
+  composite: A + "form8-4angles.mp4",
+  chapterStart: 511
+}];
+var MOVES_ZH = {
+  1: {
+    focus: "全身伸展 · 体态",
+    steps: ["双手十指交扣于小腹前，掌心向上。", "吸气，双手沿身体前方缓缓上托，翻掌向上推过头顶，身体向上伸展，脚跟可微微离地。", "呼气，双手从身体两侧缓缓落下。"],
+    mistake: "耸肩——肩膀保持下沉放松。"
+  },
+  2: {
+    focus: "胸臂 · 腿部力量",
+    steps: ["双脚开立成马步。", "吸气，做拉弓式：一臂平伸与肩同高，另一臂屈肘后拉，眼睛看向伸直的手。", "呼气，还原；换另一侧。"],
+    mistake: "站姿太窄或身体倾斜。"
+  },
+  3: {
+    focus: "侧腰伸展 · 调理脾胃",
+    steps: ["一掌上托过头顶，另一掌下按至胯旁，拉伸身体侧面；左右交替，动作缓慢。"],
+    mistake: "身体向一侧倾斜——要向上向下对拉伸展，而不是侧弯。"
+  },
+  4: {
+    focus: "颈椎脊柱 · 轻柔旋转",
+    steps: ["双脚站立，双臂自然下垂，身体保持不动；只转动头部，向一侧肩后回望，再换另一侧，肩和胯始终朝前。"],
+    mistake: "整个身体跟着一起转。"
+  },
+  5: {
+    focus: "脊柱灵活 · 协调",
+    steps: ["宽马步，双手按膝，上身前俯；头部和上身缓缓向两侧画弧摆动，臀部向相反方向摆动，动作连绵不断。"],
+    mistake: "脖子僵硬——动作要流畅。"
+  },
+  6: {
+    focus: "背部与腿后侧 · 强腰固肾",
+    steps: ["双臂上举过头顶，俯身向前，双手沿双腿后侧滑下摸到脚面，稍停；起身时双手扶腰，轻微后仰。"],
+    mistake: "俯身到底时弹动，或全程憋气。"
+  },
+  7: {
+    focus: "手臂力量 · 专注",
+    steps: ["马步站立，双拳收于腰间；一拳缓慢向前冲出并拧转，怒目看向拳头；然后张掌、抓握、收回腰间，左右交替。"],
+    mistake: "出拳太快——力量来自缓慢。"
+  },
+  8: {
+    focus: "平衡 · 全身放松",
+    steps: ["双脚并拢，踮起脚尖、脚跟抬离地面，稍停，然后脚跟落地轻颠；重复7次。"],
+    mistake: "屈膝——双腿保持伸直，只动脚跟。"
+  }
+};
+var SPEEDS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
+var THEMES = [{
+  id: "studio",
+  label: "Studio White",
+  labelZh: "工作室白",
+  swatch: "#fdfcfa"
+}, {
+  id: "midnight",
+  label: "Midnight",
+  labelZh: "午夜",
+  swatch: "#14161c"
+}, {
+  id: "blossom",
+  label: "Blossom Pink",
+  labelZh: "樱花粉",
+  swatch: "#fbe7ea"
+}, {
+  id: "bamboo",
+  label: "Bamboo Green",
+  labelZh: "竹青",
+  swatch: "#e6edda"
+}];
+var MUSIC_OPTIONS = [{
+  id: "off",
+  label: "Off",
+  labelZh: "关闭"
+}, {
+  id: "chimes",
+  label: "Gentle Chimes",
+  labelZh: "轻风铃"
+}, {
+  id: "rain",
+  label: "Rain",
+  labelZh: "雨声"
+}, {
+  id: "stream",
+  label: "Stream",
+  labelZh: "溪流"
+}];
+var OUTFITS = [{
+  id: "red",
+  label: "🧧 Red Traditional",
+  labelZh: "🧧 红色传统服"
+}, {
+  id: "gym",
+  label: "👕 Gym Outfit",
+  labelZh: "👕 健身服"
+}];
+function moveById(id) {
+  for (var i = 0; i < MOVES.length; i++) if (MOVES[i].id === id) return MOVES[i];
+  return MOVES[0];
+}
+function fmt(sec) {
+  if (!isFinite(sec) || sec < 0) return "0:00";
+  var m = Math.floor(sec / 60),
+    s = Math.floor(sec % 60);
+  return m + ":" + (s < 10 ? "0" : "") + s;
+}
+function el(tag, cls, text) {
+  var e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+var Music = function () {
+  var ctx = null,
+    running = null,
+    current = "off";
+  function audio() {
+    if (!ctx) {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      ctx = new AC();
+    }
+    return ctx;
+  }
+  function master(ac, v) {
+    var g = ac.createGain();
+    g.gain.value = v;
+    g.connect(ac.destination);
+    return g;
+  }
+  function noiseSource(ac, seconds) {
+    var buffer = ac.createBuffer(1, ac.sampleRate * seconds, ac.sampleRate);
+    var data = buffer.getChannelData(0);
+    for (var i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    var src = ac.createBufferSource();
+    src.buffer = buffer;
+    src.loop = true;
+    return src;
+  }
+  function startRain(ac) {
+    var out = master(ac, 0);
+    out.gain.linearRampToValueAtTime(0.16, ac.currentTime + 1.5);
+    var src = noiseSource(ac, 2);
+    var low = ac.createBiquadFilter();
+    low.type = "lowpass";
+    low.frequency.value = 900;
+    var high = ac.createBiquadFilter();
+    high.type = "highpass";
+    high.frequency.value = 250;
+    src.connect(low);
+    low.connect(high);
+    high.connect(out);
+    src.start();
+    var timers = [];
+    var plink = function () {
+      var t = ac.currentTime;
+      var osc = ac.createOscillator();
+      osc.type = "sine";
+      osc.frequency.value = 1400 + Math.random() * 1600;
+      var g = ac.createGain();
+      g.gain.setValueAtTime(0.03, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+      osc.connect(g);
+      g.connect(out);
+      osc.start(t);
+      osc.stop(t + 0.2);
+      timers.push(window.setTimeout(plink, 250 + Math.random() * 1500));
+    };
+    timers.push(window.setTimeout(plink, 600));
+    return {
+      stop: function () {
+        timers.forEach(clearTimeout);
+        try {
+          src.stop();
+        } catch (e) {}
+        out.disconnect();
+      }
+    };
+  }
+  function startStream(ac) {
+    var out = master(ac, 0);
+    out.gain.linearRampToValueAtTime(0.13, ac.currentTime + 1.5);
+    var src = noiseSource(ac, 3);
+    var band = ac.createBiquadFilter();
+    band.type = "bandpass";
+    band.frequency.value = 600;
+    band.Q.value = 0.6;
+    var lfo = ac.createOscillator();
+    lfo.frequency.value = 0.13;
+    var lfoGain = ac.createGain();
+    lfoGain.gain.value = 260;
+    lfo.connect(lfoGain);
+    lfoGain.connect(band.frequency);
+    src.connect(band);
+    band.connect(out);
+    src.start();
+    lfo.start();
+    return {
+      stop: function () {
+        try {
+          src.stop();
+          lfo.stop();
+        } catch (e) {}
+        out.disconnect();
+      }
+    };
+  }
+  function startChimes(ac) {
+    var out = master(ac, 0.5);
+    var scale = [220, 261.63, 293.66, 329.63, 392, 440, 523.25];
+    var timers = [],
+      stopped = false;
+    var bell = function () {
+      if (stopped) return;
+      var t = ac.currentTime;
+      var freq = scale[Math.floor(Math.random() * scale.length)];
+      var osc = ac.createOscillator();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      var over = ac.createOscillator();
+      over.type = "sine";
+      over.frequency.value = freq * 2.76;
+      var g = ac.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.11, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 2.8);
+      var og = ac.createGain();
+      og.gain.value = 0.25;
+      osc.connect(g);
+      over.connect(og);
+      og.connect(g);
+      g.connect(out);
+      osc.start(t);
+      over.start(t);
+      osc.stop(t + 3);
+      over.stop(t + 3);
+      timers.push(window.setTimeout(bell, 1400 + Math.random() * 2600));
+    };
+    timers.push(window.setTimeout(bell, 200));
+    return {
+      stop: function () {
+        stopped = true;
+        timers.forEach(clearTimeout);
+        out.disconnect();
+      }
+    };
+  }
+  return {
+    set: function (id) {
+      if (id === current && running) {
+        audio().resume();
+        return;
+      }
+      if (id === current && id === "off") return;
+      if (running) {
+        running.stop();
+        running = null;
+      }
+      current = id;
+      if (id === "off") return;
+      var ac = audio();
+      ac.resume();
+      if (id === "rain") running = startRain(ac);else if (id === "stream") running = startStream(ac);else running = startChimes(ac);
+    }
+  };
+}();
+function Player(container, label) {
+  this.label = label;
+  this.speed = 1;
+  this.loop = true;
+  this.mirror = false;
+  this.zoom = 1;
+  this.pan = {
+    x: 0,
+    y: 0
+  };
+  this.onEnded = null;
+  var self = this;
+  var stage = el("div", "p-stage");
+  var video = document.createElement("video");
+  __tunnel.setAttr(video, "playsinline", "");
+  __tunnel.setAttr(video, "preload", "metadata");
+  __tunnel.setAttr(video, "aria-label", label);
+  var overlay = el("button", "p-overlay");
+  overlay.type = "button";
+  var bigPlay = el("span", "big-play", "▶");
+  overlay.appendChild(bigPlay);
+  stage.appendChild(video);
+  stage.appendChild(overlay);
+  container.appendChild(stage);
+  var transport = el("div", "p-transport");
+  var playBtn = el("button", "p-play", "▶");
+  playBtn.type = "button";
+  __tunnel.setAttr(playBtn, "aria-label", "Play");
+  var time = el("span", "p-time", "0:00 / 0:00");
+  var seek = document.createElement("input");
+  seek.type = "range";
+  seek.className = "p-seek";
+  seek.min = "0";
+  seek.max = "0";
+  seek.step = "0.1";
+  seek.value = "0";
+  __tunnel.setAttr(seek, "aria-label", "Seek");
+  transport.appendChild(playBtn);
+  transport.appendChild(time);
+  transport.appendChild(seek);
+  container.appendChild(transport);
+  var zoomRow = el("div", "p-zoomrow");
+  var zLabel = el("span", "zlabel", "🔍 Zoom 1.00×");
+  var zoomInput = document.createElement("input");
+  zoomInput.type = "range";
+  zoomInput.className = "p-zoom";
+  zoomInput.min = "1";
+  zoomInput.max = "2.5";
+  zoomInput.step = "0.05";
+  zoomInput.value = "1";
+  __tunnel.setAttr(zoomInput, "aria-label", "Zoom level");
+  var resetBtn = el("button", "p-reset", "Reset view");
+  resetBtn.type = "button";
+  zoomRow.appendChild(zLabel);
+  zoomRow.appendChild(zoomInput);
+  zoomRow.appendChild(resetBtn);
+  container.appendChild(zoomRow);
+  var panHint = el("p", "p-panhint", "Drag the video to pan while zoomed in.");
+  container.appendChild(panHint);
+  this.video = video;
+  this.stage = stage;
+  this.playBtn = playBtn;
+  this.timeEl = time;
+  this.seekEl = seek;
+  this.zoomEl = zoomInput;
+  this.zLabel = zLabel;
+  this.panHint = panHint;
+  this.bigPlay = bigPlay;
+  this.overlayBtn = overlay;
+  this.resetBtn = resetBtn;
+  this.cur = 0;
+  this.dur = 0;
+  this.playing = false;
+  __tunnel.setUrlProp(this, "src", "");
+  this.lang = "en";
+  function applyTransform() {
+    __tunnel.setStyle(video, "transform", "translate(" + self.pan.x + "px, " + self.pan.y + "px) scale(" + self.zoom + ") scaleX(" + (self.mirror ? -1 : 1) + ")");
+  }
+  this.applyTransform = applyTransform;
+  function setPlaying(p) {
+    self.playing = p;
+    playBtn.textContent = p ? "❚❚" : "▶";
+    __tunnel.setAttr(playBtn, "aria-label", p ? self.lang === "zh" ? "暂停" : "Pause" : self.lang === "zh" ? "播放" : "Play");
+    __tunnel.setStyle(bigPlay, "display", p ? "none" : "flex");
+  }
+  this.setPlayingUI = setPlaying;
+  this.togglePlay = function () {
+    if (video.paused) {
+      var pr = video.play();
+      if (pr) pr.catch(function () {});
+    } else video.pause();
+  };
+  playBtn.addEventListener("click", this.togglePlay);
+  overlay.addEventListener("click", this.togglePlay);
+  __tunnel.setAttr(overlay, "aria-label", "Play or pause " + label);
+  video.addEventListener("play", function () {
+    setPlaying(true);
+  });
+  video.addEventListener("pause", function () {
+    setPlaying(false);
+  });
+  video.addEventListener("timeupdate", function () {
+    self.cur = video.currentTime;
+    time.textContent = fmt(self.cur) + " / " + fmt(self.dur);
+    if (document.activeElement !== seek) seek.value = String(Math.min(self.cur, self.dur || 0));
+  });
+  video.addEventListener("loadedmetadata", function () {
+    self.dur = video.duration || 0;
+    video.playbackRate = self.speed;
+    seek.max = String(self.dur || 0);
+    time.textContent = fmt(self.cur) + " / " + fmt(self.dur);
+  });
+  video.addEventListener("ended", function () {
+    setPlaying(false);
+    if (self.onEnded) self.onEnded();
+  });
+  seek.addEventListener("input", function () {
+    var t = Number(seek.value);
+    video.currentTime = t;
+    self.cur = t;
+    time.textContent = fmt(t) + " / " + fmt(self.dur);
+  });
+  zoomInput.addEventListener("input", function () {
+    self.zoom = Number(zoomInput.value);
+    if (self.zoom <= 1) self.pan = {
+      x: 0,
+      y: 0
+    };
+    zLabel.textContent = self.zoomText();
+    panHint.classList.toggle("show", self.zoom > 1);
+    applyTransform();
+  });
+  resetBtn.addEventListener("click", function () {
+    self.zoom = 1;
+    self.pan = {
+      x: 0,
+      y: 0
+    };
+    zoomInput.value = "1";
+    zLabel.textContent = self.zoomText();
+    panHint.classList.remove("show");
+    applyTransform();
+  });
+  var drag = null;
+  stage.addEventListener("pointerdown", function (e) {
+    if (self.zoom <= 1) return;
+    if (e.target === overlay || overlay.contains(e.target)) return;
+    drag = {
+      x: e.clientX,
+      y: e.clientY,
+      px: self.pan.x,
+      py: self.pan.y
+    };
+    try {
+      stage.setPointerCapture(e.pointerId);
+    } catch (err) {}
+  });
+  stage.addEventListener("pointermove", function (e) {
+    if (!drag) return;
+    var maxX = stage.clientWidth * (self.zoom - 1) / 2;
+    var maxY = stage.clientHeight * (self.zoom - 1) / 2;
+    self.pan = {
+      x: Math.max(-maxX, Math.min(maxX, drag.px + (e.clientX - drag.x))),
+      y: Math.max(-maxY, Math.min(maxY, drag.py + (e.clientY - drag.y)))
+    };
+    applyTransform();
+  });
+  var endDrag = function () {
+    drag = null;
+  };
+  stage.addEventListener("pointerup", endDrag);
+  stage.addEventListener("pointercancel", endDrag);
+}
+Player.prototype.setSource = function (src, autoplay) {
+  if (this.src === src && this.video.getAttribute("src")) {
+    this.video.loop = this.loop;
+    if (autoplay && this.video.paused) {
+      var p0 = this.video.play();
+      if (p0) p0.catch(function () {});
+    }
+    return;
+  }
+  __tunnel.setUrlProp(this, "src", src);
+  this.cur = 0;
+  this.dur = 0;
+  this.zoom = 1;
+  this.pan = {
+    x: 0,
+    y: 0
+  };
+  this.zoomEl.value = "1";
+  this.zLabel.textContent = this.zoomText();
+  this.panHint.classList.remove("show");
+  this.applyTransform();
+  this.timeEl.textContent = "0:00 / 0:00";
+  this.seekEl.value = "0";
+  this.seekEl.max = "0";
+  var v = this.video;
+  v.loop = this.loop;
+  __tunnel.setUrlProp(v, "src", src);
+  v.playbackRate = this.speed;
+  if (autoplay) {
+    var p = v.play();
+    if (p) p.catch(function () {});
+  }
+};
+Player.prototype.seekTo = function (t) {
+  var v = this.video;
+  var go = function () {
+    try {
+      v.currentTime = t;
+    } catch (e) {}
+    var p = v.play();
+    if (p) p.catch(function () {});
+  };
+  if (v.readyState >= 1) go();else v.addEventListener("loadedmetadata", go, {
+    once: true
+  });
+};
+Player.prototype.applyShared = function (speed, loop, mirror) {
+  this.speed = speed;
+  this.loop = loop;
+  this.mirror = mirror;
+  this.video.playbackRate = speed;
+  this.video.loop = loop;
+  this.applyTransform();
+};
+Player.prototype.pause = function () {
+  this.video.pause();
+};
+Player.prototype.zoomText = function () {
+  return this.lang === "zh" ? "🔍 缩放 " + this.zoom.toFixed(2) + "×" : "🔍 Zoom " + this.zoom.toFixed(2) + "×";
+};
+Player.prototype.setLang = function (lang) {
+  this.lang = lang;
+  var zh = lang === "zh";
+  this.zLabel.textContent = this.zoomText();
+  this.resetBtn.textContent = zh ? "重置视图" : "Reset view";
+  this.panHint.textContent = zh ? "放大后，拖动画面即可平移。" : "Drag the video to pan while zoomed in.";
+  __tunnel.setAttr(this.seekEl, "aria-label", zh ? "进度" : "Seek");
+  __tunnel.setAttr(this.zoomEl, "aria-label", zh ? "缩放级别" : "Zoom level");
+  __tunnel.setAttr(this.playBtn, "aria-label", this.playing ? zh ? "暂停" : "Pause" : zh ? "播放" : "Play");
+  __tunnel.setAttr(this.overlayBtn, "aria-label", (zh ? "播放或暂停：" : "Play or pause ") + this.label);
+};
+var state = {
+  mode: "learn",
+  moveId: 1,
+  angle: "front",
+  angleView: "single",
+  speed: 1,
+  loop: true,
+  mirror: false,
+  outfit: "red",
+  theme: "studio",
+  music: "off",
+  lang: "en",
+  practiced: {},
+  practiceIdx: 0,
+  practiceDone: false
+};
+function L(en, zh) {
+  return state.lang === "zh" ? zh : en;
+}
+function angleName(a) {
+  return state.lang === "zh" ? a.zh : a.label;
+}
+function currentMove() {
+  return moveById(state.mode === "practice" ? state.practiceIdx + 1 : state.moveId);
+}
+function practicedCount() {
+  var n = 0;
+  for (var k in state.practiced) if (state.practiced[k]) n++;
+  return n;
+}
+var playerFull = new Player(document.getElementById("playerFull"), "Baduanjin full set video");
+var playerMain = new Player(document.getElementById("playerMain"), "Move video");
+var themeRow = document.getElementById("themeRow");
+THEMES.forEach(function (t) {
+  var b = el("button", "chip", "");
+  b.type = "button";
+  var sw = el("span", "swatch");
+  __tunnel.setStyle(sw, "backgroundColor", t.swatch);
+  b.appendChild(sw);
+  var lab = el("span", "chip-label", t.label);
+  b.appendChild(lab);
+  __tunnel.setAttr(b, "data-theme-id", t.id);
+  b.addEventListener("click", function () {
+    state.theme = t.id;
+    renderSettings();
+  });
+  themeRow.appendChild(b);
+});
+var outfitRow = document.getElementById("outfitRow");
+OUTFITS.forEach(function (o) {
+  var b = el("button", "chip", o.label);
+  b.type = "button";
+  __tunnel.setAttr(b, "data-outfit-id", o.id);
+  b.addEventListener("click", function () {
+    state.outfit = o.id;
+    if (o.id === "gym") state.angle = "front";
+    renderAll();
+  });
+  outfitRow.appendChild(b);
+});
+var musicRow = document.getElementById("musicRow");
+MUSIC_OPTIONS.forEach(function (m) {
+  var b = el("button", "chip", m.label);
+  b.type = "button";
+  __tunnel.setAttr(b, "data-music-id", m.id);
+  b.addEventListener("click", function () {
+    state.music = m.id;
+    Music.set(m.id);
+    renderSettings();
+  });
+  musicRow.appendChild(b);
+});
+var langRow = document.getElementById("langRow");
+[{
+  id: "en",
+  label: "English"
+}, {
+  id: "zh",
+  label: "中文"
+}].forEach(function (l) {
+  var b = el("button", "chip", l.label);
+  b.type = "button";
+  __tunnel.setAttr(b, "data-lang-id", l.id);
+  __tunnel.setAttr(b, "aria-label", l.id === "zh" ? "切换到中文界面" : "Switch interface to English");
+  b.addEventListener("click", function () {
+    state.lang = l.id;
+    renderAll();
+  });
+  langRow.appendChild(b);
+});
+window.addEventListener("pointerdown", function () {
+  if (state.music !== "off") Music.set(state.music);
+});
+var speedRow = document.getElementById("speedRow");
+SPEEDS.forEach(function (s) {
+  var b = el("button", "speed-btn", s + "×");
+  b.type = "button";
+  __tunnel.setAttr(b, "data-speed", String(s));
+  __tunnel.setAttr(b, "aria-label", "Playback speed " + s + " times");
+  b.addEventListener("click", function () {
+    state.speed = s;
+    renderAll();
+  });
+  speedRow.appendChild(b);
+});
+var loopBtn = document.getElementById("loopBtn");
+loopBtn.addEventListener("click", function () {
+  state.loop = !state.loop;
+  renderAll();
+});
+var mirrorBtn = document.getElementById("mirrorBtn");
+mirrorBtn.addEventListener("click", function () {
+  state.mirror = !state.mirror;
+  renderAll();
+});
+var tabBtns = document.querySelectorAll("#tabs .tab");
+tabBtns.forEach(function (b) {
+  b.addEventListener("click", function () {
+    var m = b.getAttribute("data-mode");
+    if (m === "practice") startPractice();else {
+      state.mode = m;
+      renderAll();
+    }
+  });
+});
+document.getElementById("practiceAllBtn").addEventListener("click", startPractice);
+var chaptersEl = document.getElementById("chapters");
+MOVES.forEach(function (m) {
+  var b = el("button", "chapter");
+  b.type = "button";
+  b.appendChild(el("span", "c-time", m.id + " · " + fmt(m.chapterStart)));
+  var zh = el("span", "c-zh font-display", m.shortZh);
+  b.appendChild(zh);
+  b.appendChild(el("span", "c-en", m.en));
+  b.addEventListener("click", function () {
+    playerFull.seekTo(m.chapterStart);
+  });
+  chaptersEl.appendChild(b);
+});
+document.getElementById("practicePrev").addEventListener("click", function () {
+  if (state.practiceIdx > 0) {
+    state.practiceIdx--;
+    state.practiceDone = false;
+    renderAll();
+  }
+});
+document.getElementById("practiceNext").addEventListener("click", function () {
+  if (state.practiceIdx < MOVES.length - 1) {
+    state.practiceIdx++;
+    state.practiceDone = false;
+    renderAll();
+  }
+});
+document.getElementById("practiceEnd").addEventListener("click", function () {
+  state.mode = "learn";
+  renderAll();
+});
+document.getElementById("practiceAgain").addEventListener("click", startPractice);
+document.getElementById("practicedBtn").addEventListener("click", function () {
+  var m = currentMove();
+  state.practiced[m.id] = !state.practiced[m.id];
+  renderAll();
+});
+playerMain.onEnded = function () {
+  if (state.mode !== "practice") return;
+  if (state.practiceIdx < MOVES.length - 1) {
+    state.practiceIdx++;
+    renderAll();
+  } else {
+    state.practiceDone = true;
+    renderAll();
+  }
+};
+function startPractice() {
+  state.practiceIdx = 0;
+  state.practiceDone = false;
+  state.mode = "practice";
+  renderAll();
+}
+function renderSettings() {
+  var zh = state.lang === "zh";
+  __tunnel.setAttr(document.documentElement, "lang", zh ? "zh-CN" : "en");
+  if (state.theme === "studio") document.body.removeAttribute("data-theme");else __tunnel.setAttr(document.body, "data-theme", state.theme);
+  themeRow.querySelectorAll("button").forEach(function (b) {
+    var on = b.getAttribute("data-theme-id") === state.theme;
+    b.classList.toggle("active", on);
+    __tunnel.setAttr(b, "aria-pressed", String(on));
+    var t = THEMES.filter(function (x) {
+      return x.id === b.getAttribute("data-theme-id");
+    })[0];
+    if (t) b.querySelector(".chip-label").textContent = zh ? t.labelZh : t.label;
+  });
+  outfitRow.querySelectorAll("button").forEach(function (b) {
+    var on = b.getAttribute("data-outfit-id") === state.outfit;
+    b.classList.toggle("active", on);
+    __tunnel.setAttr(b, "aria-pressed", String(on));
+    var o = OUTFITS.filter(function (x) {
+      return x.id === b.getAttribute("data-outfit-id");
+    })[0];
+    if (o) b.textContent = zh ? o.labelZh : o.label;
+  });
+  musicRow.querySelectorAll("button").forEach(function (b) {
+    var on = b.getAttribute("data-music-id") === state.music;
+    b.classList.toggle("active", on);
+    __tunnel.setAttr(b, "aria-pressed", String(on));
+    var m = MUSIC_OPTIONS.filter(function (x) {
+      return x.id === b.getAttribute("data-music-id");
+    })[0];
+    if (m) b.textContent = zh ? m.labelZh : m.label;
+  });
+  langRow.querySelectorAll("button").forEach(function (b) {
+    var on = b.getAttribute("data-lang-id") === state.lang;
+    b.classList.toggle("active", on);
+    __tunnel.setAttr(b, "aria-pressed", String(on));
+  });
+  speedRow.querySelectorAll("button").forEach(function (b) {
+    var on = Number(b.getAttribute("data-speed")) === state.speed;
+    b.classList.toggle("active", on);
+    __tunnel.setAttr(b, "aria-pressed", String(on));
+    __tunnel.setAttr(b, "aria-label", (zh ? "播放速度 " : "Playback speed ") + b.getAttribute("data-speed") + (zh ? " 倍" : " times"));
+  });
+  loopBtn.classList.toggle("active", state.loop);
+  __tunnel.setAttr(loopBtn, "aria-pressed", String(state.loop));
+  loopBtn.textContent = zh ? "🔁 循环 " + (state.loop ? "开" : "关") : "🔁 Loop " + (state.loop ? "on" : "off");
+  mirrorBtn.classList.toggle("active", state.mirror);
+  __tunnel.setAttr(mirrorBtn, "aria-pressed", String(state.mirror));
+  mirrorBtn.textContent = zh ? "🪞 镜像 " + (state.mirror ? "开" : "关") : "🪞 Mirror " + (state.mirror ? "on" : "off");
+  document.getElementById("speedLabel").textContent = zh ? "速度" : "Speed";
+  document.getElementById("mirrorHint").textContent = zh ? "镜像会翻转画面，与你自己的左右一致。" : "Mirror flips the video so it matches your own left and right.";
+  document.getElementById("legendBg").textContent = zh ? "背景" : "Background";
+  document.getElementById("legendOutfit").textContent = zh ? "服装" : "Outfit";
+  document.getElementById("legendMusic").textContent = zh ? "音乐" : "Music";
+  document.getElementById("legendLang").textContent = zh ? "语言" : "Language";
+  document.getElementById("practiceAllBtn").textContent = zh ? "▶ 全套练习" : "▶ Practice All";
+  document.getElementById("sideTitle").textContent = zh ? "八式" : "All 8 forms";
+  document.getElementById("fullTitle").textContent = zh ? "全套练习" : "The Full Set";
+  document.getElementById("hostTitle").textContent = zh ? "把这个页面放到网上" : "Hosting this page";
+  document.getElementById("hostP").textContent = zh ? "这个面板是一个自包含页面——视频随页面一起，无需服务器、账号或数据库。放到网上只需：" : "This dashboard is one self-contained page — the videos travel with it, and it needs no server, account, or database. To put it online:";
+  __tunnel.setInnerHTML(document.getElementById("hostLi1"), zh ? "把本页保存为一个 <code>.html</code> 文件（在 Muse 里用作品的导出；在浏览器里用「文件 → 存储页面」）。" : "Save this page as a single <code>.html</code> file (in Muse, use the artifact's export; in a browser, File → Save Page As).", "innerHTML");
+  __tunnel.setInnerHTML(document.getElementById("hostLi2"), zh ? "把文件拖到任意静态托管——<code>Netlify Drop</code>、<code>GitHub Pages</code>、<code>Cloudflare Pages</code>，或你已有的任何网站空间。" : "Drop the file onto any static host — <code>Netlify Drop</code>, <code>GitHub Pages</code>, <code>Cloudflare Pages</code>, or any web space you already have.", "innerHTML");
+  document.getElementById("hostLi3").textContent = zh ? "打开它给你的链接即可。所有功能都在浏览器里运行；练习勾选仅在页面打开期间保留。" : "Open the link it gives you. Everything works offline-capable in the browser; practiced checkmarks are kept only while the page stays open.";
+  tabBtns.forEach(function (b) {
+    var on = b.getAttribute("data-mode") === state.mode;
+    b.classList.toggle("active", on);
+    __tunnel.setAttr(b, "aria-selected", String(on));
+    var m = b.getAttribute("data-mode");
+    b.textContent = zh ? m === "full" ? "全套" : m === "learn" ? "逐式分解" : "全套练习" : m === "full" ? "Show All" : m === "learn" ? "Move Breakdown" : "Practice All";
+  });
+  playerFull.setLang(state.lang);
+  playerMain.setLang(state.lang);
+}
+function renderHeader() {
+  var n = practicedCount();
+  var C = 2 * Math.PI * 17;
+  var fg = document.getElementById("ringFg");
+  __tunnel.setAttr(fg, "stroke-dasharray", String(C));
+  __tunnel.setAttr(fg, "stroke-dashoffset", String(C - C * (n / 8) * 100 / 100));
+  document.getElementById("ringNum").textContent = n + "/8";
+  var zh = state.lang === "zh";
+  document.getElementById("headerSub").textContent = n === 8 ? zh ? "8 式全部练完——全套完成！🎉" : "All 8 forms practiced — full set complete. 🎉" : zh ? "已练习 " + n + " / 8 式。逐式学习，然后勾选完成。" : n + " of 8 forms practiced. Learn each move, then check it off.";
+  __tunnel.setStyle(document.getElementById("progressFill"), "width", n / 8 * 100 + "%");
+  document.getElementById("progressNote").textContent = zh ? "已练习 " + n + " / 8 式——进度仅在页面打开期间保存在本设备上。" : n + " of 8 forms practiced — progress is kept on this device only while the page is open.";
+}
+function angleAvailable(move, a) {
+  if (a === "front") return true;
+  if (state.outfit !== "red") return false;
+  return move.angles[a] != null;
+}
+function renderAngleRow(move) {
+  var row = document.getElementById("angleRow");
+  __tunnel.setInnerHTML(row, "", "innerHTML");
+  if (state.mode !== "learn") {
+    __tunnel.setStyle(row, "display", "none");
+    return;
+  }
+  __tunnel.setStyle(row, "display", "");
+  ANGLES.forEach(function (a) {
+    var avail = angleAvailable(move, a.id);
+    var active = state.angle === a.id && state.angleView === "single";
+    var b = el("button", "chip" + (active ? " active" : "") + (!avail ? " disabled" : ""), angleName(a));
+    b.type = "button";
+    if (!avail) {
+      b.disabled = true;
+    }
+    if (!avail && a.id !== "front") b.textContent = angleName(a) + L(" · soon", " · 即将推出");
+    __tunnel.setAttr(b, "aria-pressed", String(active));
+    b.addEventListener("click", function () {
+      state.angle = a.id;
+      state.angleView = "single";
+      renderAll();
+    });
+    row.appendChild(b);
+  });
+  var g = el("button", "chip" + (state.angleView === "grid" ? " active" : ""), L("▦ Four angles", "▦ 四角度"));
+  g.type = "button";
+  __tunnel.setAttr(g, "aria-pressed", String(state.angleView === "grid"));
+  g.addEventListener("click", function () {
+    state.angleView = "grid";
+    renderAll();
+  });
+  row.appendChild(g);
+}
+function renderGrid(move) {
+  var grid = document.getElementById("angleGrid");
+  __tunnel.setInnerHTML(grid, "", "innerHTML");
+  ANGLES.forEach(function (a) {
+    var cell = el("div", "cell");
+    var src = move.angles[a.id];
+    if (src) {
+      var b = el("button");
+      b.type = "button";
+      __tunnel.setAttr(b, "aria-label", L("Study " + move.en + " from the " + a.label + " angle", "从" + a.zh + "学习" + move.zh));
+      var v = document.createElement("video");
+      __tunnel.setUrlProp(v, "src", src);
+      v.autoplay = true;
+      v.muted = true;
+      v.loop = true;
+      __tunnel.setAttr(v, "playsinline", "");
+      __tunnel.setAttr(v, "preload", "metadata");
+      b.appendChild(v);
+      b.addEventListener("click", function () {
+        state.angle = a.id;
+        state.angleView = "single";
+        renderAll();
+      });
+      cell.appendChild(b);
+    } else {
+      var soon = el("div", "soon");
+      soon.appendChild(el("span", "cam", "🎥"));
+      soon.appendChild(el("span", "t", L("Coming soon", "敬请期待")));
+      cell.appendChild(soon);
+    }
+    cell.appendChild(el("span", "tag", state.lang === "zh" ? a.zh : a.label));
+    grid.appendChild(cell);
+  });
+}
+function renderHowTo(move) {
+  var zh = state.lang === "zh";
+  var z = MOVES_ZH[move.id];
+  var h = document.getElementById("howto");
+  __tunnel.setInnerHTML(h, "", "innerHTML");
+  __tunnel.setAttr(h, "aria-label", zh ? "做法：" + move.zh : "How to do " + move.en);
+  var title = el("h3", "font-display", zh ? "做法" : "How to do it");
+  h.appendChild(title);
+  var ol = el("ol");
+  (zh ? z.steps : move.steps).forEach(function (s) {
+    ol.appendChild(el("li", "", s));
+  });
+  h.appendChild(ol);
+  var extra = el("div", "extra");
+  if (!zh) {
+    var bp = el("p");
+    var bl = el("span", "b-label", "🌬 Breathing: ");
+    bp.appendChild(bl);
+    bp.appendChild(document.createTextNode(move.breathing));
+    extra.appendChild(bp);
+  }
+  var mp = el("p");
+  var ml = el("span", "m-label", zh ? "⚠ 常见错误：" : "⚠ Common mistake: ");
+  mp.appendChild(ml);
+  mp.appendChild(document.createTextNode(zh ? z.mistake : move.mistake));
+  extra.appendChild(mp);
+  h.appendChild(extra);
+}
+function renderMoveList() {
+  var list = document.getElementById("moveList");
+  __tunnel.setInnerHTML(list, "", "innerHTML");
+  var move = currentMove();
+  MOVES.forEach(function (m) {
+    var done = !!state.practiced[m.id];
+    var active = state.mode !== "full" && move.id === m.id;
+    var row = el("div", "move-row" + (active ? " active" : ""));
+    var main = el("button", "move-main");
+    main.type = "button";
+    __tunnel.setAttr(main, "aria-label", L("Learn move " + m.id + ": " + m.en, "学习第 " + m.id + " 式：" + m.zh));
+    var num = el("span", "move-num font-display" + (done ? " done" : ""), done ? "✓" : String(m.id));
+    var names = el("span", "move-names");
+    if (state.lang === "zh") {
+      names.appendChild(el("span", "en", m.zh));
+      names.appendChild(el("span", "zh", m.en + " · " + MOVES_ZH[m.id].focus));
+    } else {
+      names.appendChild(el("span", "en", m.en));
+      names.appendChild(el("span", "zh", m.zh + " · " + m.focus));
+    }
+    main.appendChild(num);
+    main.appendChild(names);
+    main.addEventListener("click", function () {
+      if (state.mode === "practice") {
+        state.practiceIdx = m.id - 1;
+        state.practiceDone = false;
+      } else {
+        state.mode = "learn";
+        state.moveId = m.id;
+        state.angle = "front";
+      }
+      renderAll();
+    });
+    var check = el("button", "move-check" + (done ? " done" : ""), done ? "✓" : "○");
+    check.type = "button";
+    __tunnel.setAttr(check, "aria-pressed", String(done));
+    __tunnel.setAttr(check, "aria-label", done ? L("Mark move " + m.id + " " + m.en + " as not practiced", "把第 " + m.id + " 式 " + m.zh + " 标记为未练习") : L("Mark move " + m.id + " " + m.en + " as practiced", "把第 " + m.id + " 式 " + m.zh + " 标记为已练习"));
+    check.addEventListener("click", function () {
+      state.practiced[m.id] = !state.practiced[m.id];
+      renderAll();
+    });
+    row.appendChild(main);
+    row.appendChild(check);
+    list.appendChild(row);
+  });
+}
+function renderStage() {
+  var fullView = document.getElementById("fullView");
+  var learnView = document.getElementById("learnView");
+  var isFull = state.mode === "full";
+  fullView.classList.toggle("hidden", !isFull);
+  learnView.classList.toggle("hidden", isFull);
+  if (isFull) {
+    playerMain.pause();
+    document.getElementById("fullSub").textContent = state.lang === "zh" ? "8 式连贯练习（约10分钟，" + (state.outfit === "red" ? "红色传统服" : "健身服") + "）。点击章节可直接跳到该式。" : "All 8 forms back to back (~10 min, " + (state.outfit === "red" ? "red traditional outfit" : "gym outfit") + "). Tap a chapter to jump straight to that form.";
+    playerFull.applyShared(state.speed, state.loop, state.mirror);
+    playerFull.setSource(FULL_SET[state.outfit], false);
+    return;
+  }
+  playerFull.pause();
+  var move = currentMove();
+  var isPractice = state.mode === "practice";
+  document.getElementById("practiceBar").classList.toggle("hidden", !isPractice);
+  document.getElementById("practiceBadge").textContent = L("Move " + (state.practiceIdx + 1) + " of 8", "第 " + (state.practiceIdx + 1) + " 式 / 共 8 式");
+  document.getElementById("practicePrev").textContent = L("← Previous move", "← 上一式");
+  document.getElementById("practiceNext").textContent = L("Next move →", "下一式 →");
+  document.getElementById("practiceEnd").textContent = L("End practice", "结束练习");
+  document.getElementById("doneTitle").textContent = L("Full set complete!", "全套完成！");
+  document.getElementById("doneText").textContent = L("You practiced all 8 forms in order. Check them off in the list to update your progress ring.", "你已按顺序练完 8 式。在列表里勾选它们，更新你的进度环。");
+  document.getElementById("practiceAgain").textContent = L("Practice again", "再练一遍");
+  document.getElementById("practicePrev").disabled = state.practiceIdx === 0;
+  document.getElementById("practiceNext").disabled = state.practiceIdx >= MOVES.length - 1;
+  document.getElementById("practiceDone").classList.toggle("hidden", !(isPractice && state.practiceDone));
+  document.getElementById("learnBody").classList.toggle("hidden", isPractice && state.practiceDone);
+  if (isPractice && state.practiceDone) return;
+  if (state.lang === "zh") {
+    document.getElementById("formKicker").textContent = "第 " + move.id + " 式 · " + MOVES_ZH[move.id].focus;
+    document.getElementById("formTitle").textContent = move.zh;
+    document.getElementById("formZh").textContent = move.en;
+  } else {
+    document.getElementById("formKicker").textContent = "Form " + move.id + " · " + move.focus;
+    document.getElementById("formTitle").textContent = move.en;
+    document.getElementById("formZh").textContent = move.zh;
+  }
+  renderAngleRow(move);
+  var gymNoteEl = document.getElementById("gymNote");
+  gymNoteEl.textContent = L("The four-angle views were filmed in the red traditional outfit — switch the outfit to Red Traditional to study them.", "四角度视频穿的是红色传统服——把服装切换为红色传统服即可学习。");
+  gymNoteEl.classList.toggle("hidden", !(state.mode === "learn" && state.outfit === "gym"));
+  var mainWrap = document.getElementById("playerMain");
+  var gridWrap = document.getElementById("angleGridWrap");
+  var note = document.getElementById("stageNote");
+  note.classList.add("hidden");
+  note.textContent = "";
+  if (isPractice) {
+    mainWrap.classList.remove("hidden");
+    gridWrap.classList.add("hidden");
+    playerMain.applyShared(state.speed, false, state.mirror);
+    playerMain.setSource(move.front[state.outfit], true);
+  } else if (state.angleView === "grid") {
+    if (move.composite && state.outfit === "red") {
+      mainWrap.classList.remove("hidden");
+      gridWrap.classList.add("hidden");
+      playerMain.applyShared(state.speed, state.loop, state.mirror);
+      playerMain.setSource(move.composite, false);
+      note.textContent = L("All four angles at once, with the move name captioned at the top. Prefer one angle at a time? Use the angle buttons above.", "四个角度同时播放，顶部有招式名称字幕。想单独看某个角度？用上方的角度按钮。");
+      note.classList.remove("hidden");
+    } else if (state.outfit === "gym") {
+      mainWrap.classList.remove("hidden");
+      gridWrap.classList.add("hidden");
+      playerMain.applyShared(state.speed, state.loop, state.mirror);
+      playerMain.setSource(move.front.gym, false);
+      note.textContent = L("Four-angle filming exists only for the red traditional outfit, so this shows the front view.", "四角度视频只有红色传统服版本，这里显示正面视角。");
+      note.classList.remove("hidden");
+    } else {
+      mainWrap.classList.add("hidden");
+      gridWrap.classList.remove("hidden");
+      playerMain.pause();
+      renderGrid(move);
+    }
+  } else {
+    mainWrap.classList.remove("hidden");
+    gridWrap.classList.add("hidden");
+    var src = state.angle === "front" ? move.front[state.outfit] : move.angles[state.angle] || move.front.red;
+    playerMain.applyShared(state.speed, state.loop, state.mirror);
+    playerMain.setSource(src, false);
+  }
+  renderHowTo(move);
+  var pb = document.getElementById("practicedBtn");
+  var done = !!state.practiced[move.id];
+  pb.classList.toggle("done", done);
+  __tunnel.setAttr(pb, "aria-pressed", String(done));
+  pb.textContent = state.lang === "zh" ? done ? "✓ " + move.shortZh + " 已练习——点击撤销" : "标记「" + move.shortZh + "」为已练习" : done ? "✓ " + move.shortZh + " practiced — tap to undo" : "Mark " + move.en + " as practiced";
+}
+function renderAll() {
+  renderSettings();
+  renderHeader();
+  renderStage();
+  renderMoveList();
+}
+renderAll();</script>
+</body>
+</html>
