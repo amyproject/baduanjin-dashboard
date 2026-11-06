@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <link rel="icon" href="data:," />
-    <title>Baduanjin Learning Dashboard — 八段锦</title>
+    <title>Baduanjin Learning Dashboard</title>
     <style>
       :root {
         color-scheme: light;
@@ -19,40 +19,12 @@
         --good: #5c7350;
         --radius: 14px;
       }
-      [data-theme="midnight"] {
-        color-scheme: dark;
-        --bg: #14161c;
-        --surface: #1e212b;
-        --surface-alt: #262a36;
-        --text: #f2efe9;
-        --dim: #a49e93;
-        --border: #333947;
-        --accent: #e0685c;
-        --accent-soft: #3a2725;
-        --good: #9db38c;
-      }
-      [data-theme="blossom"] {
-        --bg: #fdf3f4;
-        --surface: #fffafa;
-        --surface-alt: #fbe7ea;
-        --text: #33222a;
-        --dim: #96707c;
-        --border: #f3d3da;
-        --accent: #b3352b;
-        --accent-soft: #fbe3e6;
-        --good: #5c7350;
-      }
-      [data-theme="bamboo"] {
-        --bg: #f3f6ef;
-        --surface: #fbfdf8;
-        --surface-alt: #e6edda;
-        --text: #232b1e;
-        --dim: #75816a;
-        --border: #d5dfc6;
-        --accent: #a02c23;
-        --accent-soft: #f3e4dd;
-        --good: #4f6d3e;
-      }
+      /* Video-stage backdrops — these color ONLY the surface behind and
+         around the video player, never the page itself. */
+      .stage-bg-studio { --stage-bg: #fdfcfa; --stage-ring: #e7e0d4; }
+      .stage-bg-midnight { --stage-bg: #14161c; --stage-ring: #333947; }
+      .stage-bg-blossom { --stage-bg: #fbe7ea; --stage-ring: #f3d3da; }
+      .stage-bg-bamboo { --stage-bg: #e6edda; --stage-ring: #d5dfc6; }
       * { box-sizing: border-box; }
       html, body { margin: 0; padding: 0; }
       body {
@@ -91,8 +63,8 @@
 
       /* Settings */
       .settings { margin-top: 16px; display: grid; gap: 12px; border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius); padding: 16px; }
-      @media (min-width: 640px) { .settings { grid-template-columns: repeat(2, 1fr); } }
-      @media (min-width: 1024px) { .settings { grid-template-columns: repeat(4, 1fr); } }
+      @media (min-width: 640px) { .settings { grid-template-columns: repeat(2, 1fr); } .settings .music-field { grid-column: span 2; } }
+      @media (min-width: 1024px) { .settings { grid-template-columns: 1fr 1fr 2fr 1fr; } .settings .music-field { grid-column: span 1; } }
       .settings fieldset { border: none; margin: 0; padding: 0; min-width: 0; }
       .settings legend { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--dim); margin-bottom: 8px; padding: 0; }
       .chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -103,11 +75,18 @@
       .chip.soft { border-color: transparent; }
       .chip.soft.active { background: var(--accent-soft); color: var(--accent); border-color: transparent; font-weight: 500; }
 
-      /* Playback options */
+      /* Music picture cards */
+      .music-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+      @media (max-width: 480px) { .music-cards { grid-template-columns: repeat(2, 1fr); } }
+      .music-card { border: 1px solid var(--border); background: var(--surface); border-radius: 10px; padding: 6px; text-align: center; }
+      .music-card img { display: block; width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 7px; }
+      .music-card .mc-name { display: block; margin-top: 5px; font-size: 13px; font-weight: 500; line-height: 1.3; }
+      .music-card.active { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 1px var(--accent); }
+      .music-ambience { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+      .music-ambience .amb-label { font-size: 12px; color: var(--dim); margin-right: 2px; }
+
+      /* Playback options (loop / mirror — speed & zoom live in the player) */
       .playopts { margin-top: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
-      .playopts .label { font-size: 14px; color: var(--dim); }
-      .speed-btn { border-radius: 999px; padding: 4px 10px; font-size: 14px; font-variant-numeric: tabular-nums; border: 1px solid var(--border); background: var(--surface); }
-      .speed-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
       .toggle-chip { border-radius: 999px; padding: 6px 12px; font-size: 14px; border: 1px solid var(--border); background: var(--surface); color: var(--dim); }
       .toggle-chip.active { background: var(--accent-soft); color: var(--accent); border-color: transparent; font-weight: 500; }
       .hint-xs { font-size: 12px; color: var(--dim); }
@@ -119,20 +98,25 @@
       .side-col { min-width: 0; }
       @media (min-width: 1024px) { .side-col { position: sticky; top: 16px; } }
 
-      /* Player */
-      .p-stage { position: relative; width: 100%; overflow: hidden; border-radius: var(--radius); background: #000; touch-action: none; user-select: none; -webkit-user-select: none; }
-      .p-stage video { display: block; width: 100%; height: auto; max-height: 62vh; object-fit: contain; background: #000; }
+      /* Player — the video stage shell carries the chosen video background */
+      .stage-shell { background: var(--stage-bg, #fdfcfa); border: 1px solid var(--stage-ring, var(--border)); border-radius: 18px; padding: 10px; transition: background-color .25s; }
+      .p-stage { position: relative; width: 100%; overflow: hidden; border-radius: 10px; background: transparent; touch-action: none; user-select: none; -webkit-user-select: none; }
+      .p-stage video { display: block; width: 100%; height: auto; max-height: 62vh; object-fit: contain; background: transparent; }
       .p-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
       .p-overlay .big-play { display: flex; width: 64px; height: 64px; align-items: center; justify-content: center; border-radius: 999px; background: rgba(0,0,0,.55); color: #fff; font-size: 24px; pointer-events: none; }
-      .p-transport { margin-top: 12px; display: flex; align-items: center; gap: 12px; }
-      .p-play { flex-shrink: 0; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 999px; background: var(--accent); color: #fff; font-size: 16px; }
-      .p-time { flex-shrink: 0; font-size: 14px; color: var(--dim); font-variant-numeric: tabular-nums; }
-      .p-seek { flex: 1; min-width: 0; accent-color: var(--accent); }
-      .p-zoomrow { margin-top: 8px; display: flex; align-items: center; gap: 12px; }
-      .p-zoomrow .zlabel { font-size: 14px; color: var(--dim); white-space: nowrap; }
-      .p-zoom { flex: 1; min-width: 0; accent-color: var(--accent); }
-      .p-reset { flex-shrink: 0; border: 1px solid var(--border); border-radius: 999px; padding: 6px 12px; font-size: 14px; color: var(--text); background: transparent; }
-      .p-panhint { margin-top: 4px; font-size: 12px; color: var(--dim); display: none; }
+      /* In-video control bar — compact, semi-transparent, over the
+         bottom of the video: play, seek, time, speed, zoom, reset. */
+      .p-bar { position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 26px 12px 10px; background: linear-gradient(to top, rgba(12,12,16,.66), rgba(12,12,16,0)); color: #fff; }
+      .p-play { flex-shrink: 0; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border-radius: 999px; background: rgba(255,255,255,.92); color: #211d1a; font-size: 13px; }
+      .p-time { flex-shrink: 0; font-size: 12px; color: rgba(255,255,255,.88); font-variant-numeric: tabular-nums; }
+      .p-seek { flex: 1 1 120px; min-width: 90px; accent-color: #fff; height: 4px; }
+      .p-group { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; }
+      .p-group .g-label { font-size: 12px; color: rgba(255,255,255,.88); white-space: nowrap; }
+      .p-group .g-slider { width: 74px; accent-color: #fff; height: 4px; }
+      .p-group .g-value { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; min-width: 42px; color: #fff; }
+      .p-reset { flex-shrink: 0; border: 1px solid rgba(255,255,255,.45); border-radius: 999px; padding: 3px 10px; font-size: 12px; color: #fff; background: transparent; }
+      .p-reset:hover { background: rgba(255,255,255,.16); }
+      .p-panhint { margin-top: 6px; font-size: 12px; color: var(--dim); display: none; }
       .p-panhint.show { display: block; }
 
       /* Section headings */
@@ -145,8 +129,7 @@
       .chapter { border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius); padding: 10px 12px; text-align: left; }
       .chapter:hover { border-color: var(--accent); }
       .chapter .c-time { display: block; font-size: 12px; color: var(--dim); }
-      .chapter .c-zh { display: block; font-size: 14px; font-weight: 500; margin-top: 1px; }
-      .chapter .c-en { display: block; font-size: 12px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .chapter .c-name { display: block; font-size: 14px; font-weight: 500; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
       /* Learn header */
       .form-kicker { font-size: 14px; font-weight: 600; color: var(--accent); }
@@ -157,7 +140,7 @@
 
       /* Four-angle grid */
       .grid4 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-      .cell { position: relative; aspect-ratio: 1 / 1; overflow: hidden; border-radius: var(--radius); background: #000; }
+      .cell { position: relative; aspect-ratio: 1 / 1; overflow: hidden; border-radius: 10px; background: transparent; }
       .cell button { display: block; width: 100%; height: 100%; padding: 0; }
       .cell video { width: 100%; height: 100%; object-fit: contain; display: block; }
       .cell .tag { position: absolute; bottom: 8px; left: 8px; background: rgba(0,0,0,.6); color: #fff; border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 500; pointer-events: none; }
@@ -235,7 +218,7 @@
           <span class="ring-num" id="ringNum">0/8</span>
         </div>
         <div class="header-text">
-          <h1 class="font-display">Baduanjin <span class="accent">八段锦</span></h1>
+          <h1 class="font-display" id="appTitle">Baduanjin</h1>
           <p id="headerSub">0 of 8 forms practiced. Learn each move, then check it off.</p>
         </div>
         <button type="button" class="btn-accent" id="practiceAllBtn">▶ Practice All</button>
@@ -243,37 +226,34 @@
 
       <!-- View tabs -->
       <div class="tabs" role="tablist" aria-label="Dashboard views" id="tabs">
-        <button type="button" role="tab" class="tab" data-mode="full">Show All · 全套</button>
-        <button type="button" role="tab" class="tab" data-mode="learn">Move Breakdown · 逐式</button>
-        <button type="button" role="tab" class="tab" data-mode="practice">Practice All · 练习</button>
+        <button type="button" role="tab" class="tab" data-mode="full">Show All</button>
+        <button type="button" role="tab" class="tab" data-mode="learn">Move Breakdown</button>
+        <button type="button" role="tab" class="tab" data-mode="practice">Practice All</button>
       </div>
 
       <!-- Settings: background, outfit, music -->
       <section class="settings" aria-label="Studio settings">
         <fieldset>
-          <legend id="legendBg">Background 背景</legend>
+          <legend id="legendBg">Video background</legend>
           <div class="chip-row" id="themeRow"></div>
         </fieldset>
         <fieldset>
-          <legend id="legendOutfit">Outfit 服装</legend>
+          <legend id="legendOutfit">Outfit</legend>
           <div class="chip-row" id="outfitRow"></div>
         </fieldset>
-        <fieldset>
-          <legend id="legendMusic">Music 音乐</legend>
-          <div class="chip-row" id="musicRow"></div>
+        <fieldset class="music-field">
+          <legend id="legendMusic">Music</legend>
+          <div class="music-cards" id="musicCards"></div>
+          <div class="music-ambience" id="musicAmbience"></div>
         </fieldset>
         <fieldset>
-          <legend id="legendLang">Language 语言</legend>
+          <legend id="legendLang">Language</legend>
           <div class="chip-row" id="langRow"></div>
         </fieldset>
       </section>
 
-      <!-- Playback options: speed, loop, mirror -->
+      <!-- Playback options: loop, mirror (speed & zoom are in the player) -->
       <div class="playopts">
-        <div class="chip-row" style="align-items:center;">
-          <span class="label" id="speedLabel">Speed</span>
-          <span class="chip-row" id="speedRow"></span>
-        </div>
         <button type="button" class="toggle-chip" id="loopBtn">🔁 Loop on</button>
         <button type="button" class="toggle-chip" id="mirrorBtn">🪞 Mirror off</button>
         <span class="hint-xs" id="mirrorHint">Mirror flips the video so it matches your own left and right.</span>
@@ -284,9 +264,9 @@
         <div class="stage-col">
           <!-- Show All -->
           <section id="fullView" class="hidden">
-            <h2 class="font-display sec-title" id="fullTitle">The Full Set <span class="accent">全套练习</span></h2>
+            <h2 class="font-display sec-title" id="fullTitle">The Full Set</h2>
             <p class="sec-sub" id="fullSub"></p>
-            <div id="playerFull"></div>
+            <div class="stage-shell stage-bg-studio" id="stageShellFull"><div id="playerFull"></div></div>
             <div class="chapters" id="chapters"></div>
           </section>
 
@@ -309,15 +289,16 @@
             <div id="learnBody">
               <p class="form-kicker" id="formKicker"></p>
               <h2 class="font-display form-title" id="formTitle"></h2>
-              <p class="font-display form-zh" id="formZh"></p>
 
               <div class="angle-row" id="angleRow"></div>
               <p class="hint-xs hidden" id="gymNote" style="margin-top:8px;">The four-angle views were filmed in the red traditional outfit — switch the outfit to Red Traditional to study them.</p>
 
               <div style="margin-top:12px;">
-                <div id="playerMain"></div>
-                <div id="angleGridWrap" class="hidden">
-                  <div class="grid4" id="angleGrid"></div>
+                <div class="stage-shell stage-bg-studio" id="stageShellMain">
+                  <div id="playerMain"></div>
+                  <div id="angleGridWrap" class="hidden">
+                    <div class="grid4" id="angleGrid"></div>
+                  </div>
                 </div>
                 <p class="note-sm hidden" id="stageNote"></p>
               </div>
@@ -344,7 +325,7 @@
 
         <!-- Move list column -->
         <nav class="side-col" aria-label="All Baduanjin moves">
-          <h2 class="font-display" id="sideTitle">All 8 forms <span class="accent">八式</span></h2>
+          <h2 class="font-display" id="sideTitle">All 8 forms</h2>
           <div class="move-list" id="moveList"></div>
           <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
           <p class="progress-note" id="progressNote">0 of 8 forms practiced — progress is kept on this device only while the page is open.</p>
@@ -2077,11 +2058,10 @@ var MOVES_ZH = {
     mistake: "屈膝——双腿保持伸直，只动脚跟。"
   }
 };
-var SPEEDS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
 var THEMES = [{
   id: "studio",
   label: "Studio White",
-  labelZh: "工作室白",
+  labelZh: "演播室白",
   swatch: "#fdfcfa"
 }, {
   id: "midnight",
@@ -2096,17 +2076,46 @@ var THEMES = [{
 }, {
   id: "bamboo",
   label: "Bamboo Green",
-  labelZh: "竹青",
+  labelZh: "竹林绿",
   swatch: "#e6edda"
 }];
-var MUSIC_OPTIONS = [{
+var MUSIC_INSTRUMENTS = [{
+  id: "pipa",
+  label: "Pipa",
+  labelZh: "琵琶",
+  img: A + "pipa.webp",
+  alt: "Pipa",
+  altZh: "琵琶"
+}, {
+  id: "guzheng",
+  label: "Guzheng",
+  labelZh: "古筝",
+  img: A + "guzheng.webp",
+  alt: "Guzheng",
+  altZh: "古筝"
+}, {
+  id: "dizi",
+  label: "Dizi",
+  labelZh: "笛子",
+  img: A + "dizi.webp",
+  alt: "Dizi",
+  altZh: "笛子"
+}, {
+  id: "erhu",
+  label: "Erhu",
+  labelZh: "二胡",
+  img: A + "erhu.webp",
+  alt: "Erhu",
+  altZh: "二胡"
+}];
+var MUSIC_AMBIENCE = [{
   id: "off",
   label: "Off",
   labelZh: "关闭"
 }, {
   id: "chimes",
-  label: "Gentle Chimes",
-  labelZh: "轻风铃"
+  label: "Chimes",
+  labelZh: "风铃"
 }, {
   id: "rain",
   label: "Rain",
@@ -2116,6 +2125,7 @@ var MUSIC_OPTIONS = [{
   label: "Stream",
   labelZh: "溪流"
 }];
+var MUSIC_ALL = MUSIC_INSTRUMENTS.concat(MUSIC_AMBIENCE);
 var OUTFITS = [{
   id: "red",
   label: "🧧 Red Traditional",
@@ -2275,6 +2285,214 @@ var Music = function () {
       }
     };
   }
+  var PENTA = [293.66, 329.63, 369.99, 440, 493.88, 587.33, 659.25, 739.99, 880];
+  function ksPluck(ac, dest, freq, when, dur, decay, brightHz, vol) {
+    var sr = ac.sampleRate;
+    var N = Math.max(2, Math.round(sr / freq));
+    var len = Math.floor(sr * dur);
+    var buffer = ac.createBuffer(1, len, sr);
+    var data = buffer.getChannelData(0);
+    var rb = new Float32Array(N);
+    for (var i = 0; i < N; i++) rb[i] = Math.random() * 2 - 1;
+    var idx = 0;
+    for (var n = 0; n < len; n++) {
+      var cur = rb[idx];
+      var nxt = rb[(idx + 1) % N];
+      data[n] = cur;
+      rb[idx] = decay * 0.5 * (cur + nxt);
+      idx = (idx + 1) % N;
+    }
+    var src = ac.createBufferSource();
+    src.buffer = buffer;
+    var f = ac.createBiquadFilter();
+    f.type = "lowpass";
+    f.frequency.value = brightHz;
+    var g = ac.createGain();
+    g.gain.value = vol;
+    src.connect(f);
+    f.connect(g);
+    g.connect(dest);
+    src.start(when);
+  }
+  function startGuzheng(ac) {
+    var out = master(ac, 0.55);
+    var timers = [],
+      stopped = false;
+    var pattern = [0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 2, 3, 4, 6, 5, 3];
+    var step = 0;
+    var tick = function () {
+      if (stopped) return;
+      var i = pattern[step % pattern.length];
+      step++;
+      ksPluck(ac, out, PENTA[i], ac.currentTime, 2.2, 0.996, 4200, 0.5);
+      if (step % 8 === 0) ksPluck(ac, out, PENTA[0] / 2, ac.currentTime, 2.6, 0.996, 3000, 0.3);
+      timers.push(window.setTimeout(tick, 430));
+    };
+    timers.push(window.setTimeout(tick, 150));
+    return {
+      stop: function () {
+        stopped = true;
+        timers.forEach(clearTimeout);
+        out.disconnect();
+      }
+    };
+  }
+  function startPipa(ac) {
+    var out = master(ac, 0.5);
+    var timers = [],
+      stopped = false;
+    var idx = 4;
+    var tick = function () {
+      if (stopped) return;
+      idx += [-2, -1, -1, 0, 1, 1, 2][Math.floor(Math.random() * 7)];
+      if (idx < 1) idx = 1;
+      if (idx > 7) idx = 7;
+      var freq = PENTA[idx],
+        t = ac.currentTime;
+      if (Math.random() < 0.16) {
+        for (var k = 0; k < 7; k++) ksPluck(ac, out, freq, t + k * 0.07, 0.5, 0.985, 7500, 0.30);
+        timers.push(window.setTimeout(tick, 780));
+      } else {
+        ksPluck(ac, out, freq, t, 0.9, 0.99, 7500, 0.5);
+        timers.push(window.setTimeout(tick, 235 + Math.random() * 130));
+      }
+    };
+    timers.push(window.setTimeout(tick, 120));
+    return {
+      stop: function () {
+        stopped = true;
+        timers.forEach(clearTimeout);
+        out.disconnect();
+      }
+    };
+  }
+  function diziNote(ac, out, freq, t, dur) {
+    var osc = ac.createOscillator();
+    osc.type = "sine";
+    osc.frequency.value = freq;
+    var tri = ac.createOscillator();
+    tri.type = "triangle";
+    tri.frequency.value = freq;
+    var triG = ac.createGain();
+    triG.gain.value = 0.18;
+    var vib = ac.createOscillator();
+    vib.frequency.value = 5.4;
+    var vibG = ac.createGain();
+    vibG.gain.setValueAtTime(0, t);
+    vibG.gain.linearRampToValueAtTime(freq * 0.007, t + Math.min(0.45, dur * 0.5));
+    vib.connect(vibG);
+    vibG.connect(osc.frequency);
+    vibG.connect(tri.frequency);
+    var g = ac.createGain();
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.16, t + 0.09);
+    g.gain.setValueAtTime(0.16, t + Math.max(0.1, dur - 0.14));
+    g.gain.linearRampToValueAtTime(0, t + dur);
+    var bp = ac.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.value = freq;
+    bp.Q.value = 1.1;
+    var ng = ac.createGain();
+    ng.gain.value = 0.012;
+    var noise = noiseSource(ac, 1.5);
+    noise.connect(bp);
+    bp.connect(ng);
+    ng.connect(out);
+    osc.connect(g);
+    tri.connect(triG);
+    triG.connect(g);
+    g.connect(out);
+    osc.start(t);
+    tri.start(t);
+    vib.start(t);
+    noise.start(t);
+    osc.stop(t + dur + 0.05);
+    tri.stop(t + dur + 0.05);
+    vib.stop(t + dur + 0.05);
+    noise.stop(t + dur + 0.05);
+  }
+  function startDizi(ac) {
+    var out = master(ac, 0.9);
+    var timers = [],
+      stopped = false,
+      idx = 5;
+    var phrase = function () {
+      if (stopped) return;
+      var t = ac.currentTime + 0.05;
+      var notes = 3 + Math.floor(Math.random() * 3);
+      for (var k = 0; k < notes; k++) {
+        idx += [-2, -1, 0, 1, 2][Math.floor(Math.random() * 5)];
+        if (idx < 2) idx = 2;
+        if (idx > 8) idx = 8;
+        var dur = 0.55 + Math.random() * 0.75;
+        diziNote(ac, out, PENTA[idx], t, dur);
+        t += dur * 0.96;
+      }
+      timers.push(window.setTimeout(phrase, (t - ac.currentTime) * 1000 + 650 + Math.random() * 500));
+    };
+    timers.push(window.setTimeout(phrase, 100));
+    return {
+      stop: function () {
+        stopped = true;
+        timers.forEach(clearTimeout);
+        out.disconnect();
+      }
+    };
+  }
+  function startErhu(ac) {
+    var out = master(ac, 0.85);
+    var lp = ac.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = 1250;
+    lp.Q.value = 2.5;
+    lp.connect(out);
+    var scale = [220, 246.94, 293.66, 329.63, 369.99, 440, 493.88];
+    var timers = [],
+      stopped = false,
+      idx = 3,
+      prev = scale[3];
+    var bow = function () {
+      if (stopped) return;
+      idx += [-2, -1, -1, 0, 1, 1, 2][Math.floor(Math.random() * 7)];
+      if (idx < 0) idx = 0;
+      if (idx > scale.length - 1) idx = scale.length - 1;
+      var freq = scale[idx];
+      var t = ac.currentTime,
+        dur = 2.3 + Math.random() * 1.1;
+      var osc = ac.createOscillator();
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(prev * 0.96, t);
+      osc.frequency.exponentialRampToValueAtTime(freq, t + 0.38);
+      var vib = ac.createOscillator();
+      vib.frequency.value = 5.1;
+      var vibG = ac.createGain();
+      vibG.gain.setValueAtTime(0, t);
+      vibG.gain.linearRampToValueAtTime(freq * 0.009, t + 0.9);
+      vib.connect(vibG);
+      vibG.connect(osc.frequency);
+      var g = ac.createGain();
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.075, t + 0.45);
+      g.gain.setValueAtTime(0.075, t + dur - 0.4);
+      g.gain.linearRampToValueAtTime(0, t + dur);
+      osc.connect(g);
+      g.connect(lp);
+      osc.start(t);
+      vib.start(t);
+      osc.stop(t + dur + 0.05);
+      vib.stop(t + dur + 0.05);
+      prev = freq;
+      timers.push(window.setTimeout(bow, dur * 1000 - 260));
+    };
+    timers.push(window.setTimeout(bow, 100));
+    return {
+      stop: function () {
+        stopped = true;
+        timers.forEach(clearTimeout);
+        out.disconnect();
+      }
+    };
+  }
   return {
     set: function (id) {
       if (id === current && running) {
@@ -2290,7 +2508,7 @@ var Music = function () {
       if (id === "off") return;
       var ac = audio();
       ac.resume();
-      if (id === "rain") running = startRain(ac);else if (id === "stream") running = startStream(ac);else running = startChimes(ac);
+      if (id === "rain") running = startRain(ac);else if (id === "stream") running = startStream(ac);else if (id === "guzheng") running = startGuzheng(ac);else if (id === "pipa") running = startPipa(ac);else if (id === "dizi") running = startDizi(ac);else if (id === "erhu") running = startErhu(ac);else running = startChimes(ac);
     }
   };
 }();
@@ -2317,12 +2535,10 @@ function Player(container, label) {
   overlay.appendChild(bigPlay);
   stage.appendChild(video);
   stage.appendChild(overlay);
-  container.appendChild(stage);
-  var transport = el("div", "p-transport");
+  var bar = el("div", "p-bar");
   var playBtn = el("button", "p-play", "▶");
   playBtn.type = "button";
   __tunnel.setAttr(playBtn, "aria-label", "Play");
-  var time = el("span", "p-time", "0:00 / 0:00");
   var seek = document.createElement("input");
   seek.type = "range";
   seek.className = "p-seek";
@@ -2331,26 +2547,45 @@ function Player(container, label) {
   seek.step = "0.1";
   seek.value = "0";
   __tunnel.setAttr(seek, "aria-label", "Seek");
-  transport.appendChild(playBtn);
-  transport.appendChild(time);
-  transport.appendChild(seek);
-  container.appendChild(transport);
-  var zoomRow = el("div", "p-zoomrow");
-  var zLabel = el("span", "zlabel", "🔍 Zoom 1.00×");
+  var time = el("span", "p-time", "0:00 / 0:00");
+  var speedGroup = el("span", "p-group");
+  var speedLabel = el("span", "g-label", "Speed");
+  var speedInput = document.createElement("input");
+  speedInput.type = "range";
+  speedInput.className = "g-slider";
+  speedInput.min = "0.25";
+  speedInput.max = "2";
+  speedInput.step = "0.05";
+  speedInput.value = "1";
+  __tunnel.setAttr(speedInput, "aria-label", "Playback speed");
+  var speedVal = el("span", "g-value", "1.00×");
+  speedGroup.appendChild(speedLabel);
+  speedGroup.appendChild(speedInput);
+  speedGroup.appendChild(speedVal);
+  var zoomGroup = el("span", "p-group");
+  var zoomLabel = el("span", "g-label", "Zoom");
   var zoomInput = document.createElement("input");
   zoomInput.type = "range";
-  zoomInput.className = "p-zoom";
+  zoomInput.className = "g-slider";
   zoomInput.min = "1";
   zoomInput.max = "2.5";
   zoomInput.step = "0.05";
   zoomInput.value = "1";
   __tunnel.setAttr(zoomInput, "aria-label", "Zoom level");
+  var zoomVal = el("span", "g-value", "1.00×");
+  zoomGroup.appendChild(zoomLabel);
+  zoomGroup.appendChild(zoomInput);
+  zoomGroup.appendChild(zoomVal);
   var resetBtn = el("button", "p-reset", "Reset view");
   resetBtn.type = "button";
-  zoomRow.appendChild(zLabel);
-  zoomRow.appendChild(zoomInput);
-  zoomRow.appendChild(resetBtn);
-  container.appendChild(zoomRow);
+  bar.appendChild(playBtn);
+  bar.appendChild(seek);
+  bar.appendChild(time);
+  bar.appendChild(speedGroup);
+  bar.appendChild(zoomGroup);
+  bar.appendChild(resetBtn);
+  stage.appendChild(bar);
+  container.appendChild(stage);
   var panHint = el("p", "p-panhint", "Drag the video to pan while zoomed in.");
   container.appendChild(panHint);
   this.video = video;
@@ -2359,16 +2594,23 @@ function Player(container, label) {
   this.timeEl = time;
   this.seekEl = seek;
   this.zoomEl = zoomInput;
-  this.zLabel = zLabel;
+  this.speedEl = speedInput;
+  this.speedVal = speedVal;
+  this.zoomVal = zoomVal;
+  this.speedLabelEl = speedLabel;
+  this.zoomLabelEl = zoomLabel;
   this.panHint = panHint;
   this.bigPlay = bigPlay;
   this.overlayBtn = overlay;
   this.resetBtn = resetBtn;
+  this.barEl = bar;
   this.cur = 0;
   this.dur = 0;
   this.playing = false;
   __tunnel.setUrlProp(this, "src", "");
   this.lang = "en";
+  this.onSpeedChange = null;
+  this._suppressClick = false;
   function applyTransform() {
     __tunnel.setStyle(video, "transform", "translate(" + self.pan.x + "px, " + self.pan.y + "px) scale(" + self.zoom + ") scaleX(" + (self.mirror ? -1 : 1) + ")");
   }
@@ -2381,6 +2623,10 @@ function Player(container, label) {
   }
   this.setPlayingUI = setPlaying;
   this.togglePlay = function () {
+    if (self._suppressClick) {
+      self._suppressClick = false;
+      return;
+    }
     if (video.paused) {
       var pr = video.play();
       if (pr) pr.catch(function () {});
@@ -2416,13 +2662,18 @@ function Player(container, label) {
     self.cur = t;
     time.textContent = fmt(t) + " / " + fmt(self.dur);
   });
+  speedInput.addEventListener("input", function () {
+    var v = Number(speedInput.value);
+    self.setSpeed(v);
+    if (self.onSpeedChange) self.onSpeedChange(v);
+  });
   zoomInput.addEventListener("input", function () {
     self.zoom = Number(zoomInput.value);
     if (self.zoom <= 1) self.pan = {
       x: 0,
       y: 0
     };
-    zLabel.textContent = self.zoomText();
+    zoomVal.textContent = self.zoomText();
     panHint.classList.toggle("show", self.zoom > 1);
     applyTransform();
   });
@@ -2433,14 +2684,14 @@ function Player(container, label) {
       y: 0
     };
     zoomInput.value = "1";
-    zLabel.textContent = self.zoomText();
+    zoomVal.textContent = self.zoomText();
     panHint.classList.remove("show");
     applyTransform();
   });
   var drag = null;
   stage.addEventListener("pointerdown", function (e) {
     if (self.zoom <= 1) return;
-    if (e.target === overlay || overlay.contains(e.target)) return;
+    if (bar.contains(e.target)) return;
     drag = {
       x: e.clientX,
       y: e.clientY,
@@ -2453,11 +2704,14 @@ function Player(container, label) {
   });
   stage.addEventListener("pointermove", function (e) {
     if (!drag) return;
+    var dx = e.clientX - drag.x,
+      dy = e.clientY - drag.y;
+    if (Math.abs(dx) + Math.abs(dy) > 6) self._suppressClick = true;
     var maxX = stage.clientWidth * (self.zoom - 1) / 2;
     var maxY = stage.clientHeight * (self.zoom - 1) / 2;
     self.pan = {
-      x: Math.max(-maxX, Math.min(maxX, drag.px + (e.clientX - drag.x))),
-      y: Math.max(-maxY, Math.min(maxY, drag.py + (e.clientY - drag.y)))
+      x: Math.max(-maxX, Math.min(maxX, drag.px + dx)),
+      y: Math.max(-maxY, Math.min(maxY, drag.py + dy))
     };
     applyTransform();
   });
@@ -2485,7 +2739,7 @@ Player.prototype.setSource = function (src, autoplay) {
     y: 0
   };
   this.zoomEl.value = "1";
-  this.zLabel.textContent = this.zoomText();
+  this.zoomVal.textContent = this.zoomText();
   this.panHint.classList.remove("show");
   this.applyTransform();
   this.timeEl.textContent = "0:00 / 0:00";
@@ -2513,11 +2767,16 @@ Player.prototype.seekTo = function (t) {
     once: true
   });
 };
+Player.prototype.setSpeed = function (v) {
+  this.speed = v;
+  this.video.playbackRate = v;
+  if (document.activeElement !== this.speedEl) this.speedEl.value = String(v);
+  this.speedVal.textContent = v.toFixed(2) + "×";
+};
 Player.prototype.applyShared = function (speed, loop, mirror) {
-  this.speed = speed;
   this.loop = loop;
   this.mirror = mirror;
-  this.video.playbackRate = speed;
+  this.setSpeed(speed);
   this.video.loop = loop;
   this.applyTransform();
 };
@@ -2525,15 +2784,18 @@ Player.prototype.pause = function () {
   this.video.pause();
 };
 Player.prototype.zoomText = function () {
-  return this.lang === "zh" ? "🔍 缩放 " + this.zoom.toFixed(2) + "×" : "🔍 Zoom " + this.zoom.toFixed(2) + "×";
+  return this.zoom.toFixed(2) + "×";
 };
 Player.prototype.setLang = function (lang) {
   this.lang = lang;
   var zh = lang === "zh";
-  this.zLabel.textContent = this.zoomText();
+  this.speedLabelEl.textContent = zh ? "速度" : "Speed";
+  this.zoomLabelEl.textContent = zh ? "缩放" : "Zoom";
+  this.zoomVal.textContent = this.zoomText();
   this.resetBtn.textContent = zh ? "重置视图" : "Reset view";
   this.panHint.textContent = zh ? "放大后，拖动画面即可平移。" : "Drag the video to pan while zoomed in.";
   __tunnel.setAttr(this.seekEl, "aria-label", zh ? "进度" : "Seek");
+  __tunnel.setAttr(this.speedEl, "aria-label", zh ? "播放速度" : "Playback speed");
   __tunnel.setAttr(this.zoomEl, "aria-label", zh ? "缩放级别" : "Zoom level");
   __tunnel.setAttr(this.playBtn, "aria-label", this.playing ? zh ? "暂停" : "Pause" : zh ? "播放" : "Play");
   __tunnel.setAttr(this.overlayBtn, "aria-label", (zh ? "播放或暂停：" : "Play or pause ") + this.label);
@@ -2598,9 +2860,27 @@ OUTFITS.forEach(function (o) {
   });
   outfitRow.appendChild(b);
 });
-var musicRow = document.getElementById("musicRow");
-MUSIC_OPTIONS.forEach(function (m) {
-  var b = el("button", "chip", m.label);
+var musicCardsEl = document.getElementById("musicCards");
+MUSIC_INSTRUMENTS.forEach(function (m) {
+  var b = el("button", "music-card");
+  b.type = "button";
+  __tunnel.setAttr(b, "data-music-id", m.id);
+  var img = document.createElement("img");
+  __tunnel.setUrlProp(img, "src", m.img);
+  img.alt = m.alt;
+  img.loading = "lazy";
+  b.appendChild(img);
+  b.appendChild(el("span", "mc-name", m.label));
+  b.addEventListener("click", function () {
+    state.music = m.id;
+    Music.set(m.id);
+    renderSettings();
+  });
+  musicCardsEl.appendChild(b);
+});
+var musicAmbienceEl = document.getElementById("musicAmbience");
+MUSIC_AMBIENCE.forEach(function (m) {
+  var b = el("button", "chip soft", m.label);
   b.type = "button";
   __tunnel.setAttr(b, "data-music-id", m.id);
   b.addEventListener("click", function () {
@@ -2608,20 +2888,17 @@ MUSIC_OPTIONS.forEach(function (m) {
     Music.set(m.id);
     renderSettings();
   });
-  musicRow.appendChild(b);
+  musicAmbienceEl.appendChild(b);
 });
 var langRow = document.getElementById("langRow");
 [{
-  id: "en",
-  label: "English"
+  id: "en"
 }, {
-  id: "zh",
-  label: "中文"
+  id: "zh"
 }].forEach(function (l) {
-  var b = el("button", "chip", l.label);
+  var b = el("button", "chip", l.id === "zh" ? "Chinese" : "English");
   b.type = "button";
   __tunnel.setAttr(b, "data-lang-id", l.id);
-  __tunnel.setAttr(b, "aria-label", l.id === "zh" ? "切换到中文界面" : "Switch interface to English");
   b.addEventListener("click", function () {
     state.lang = l.id;
     renderAll();
@@ -2631,18 +2908,13 @@ var langRow = document.getElementById("langRow");
 window.addEventListener("pointerdown", function () {
   if (state.music !== "off") Music.set(state.music);
 });
-var speedRow = document.getElementById("speedRow");
-SPEEDS.forEach(function (s) {
-  var b = el("button", "speed-btn", s + "×");
-  b.type = "button";
-  __tunnel.setAttr(b, "data-speed", String(s));
-  __tunnel.setAttr(b, "aria-label", "Playback speed " + s + " times");
-  b.addEventListener("click", function () {
-    state.speed = s;
-    renderAll();
-  });
-  speedRow.appendChild(b);
-});
+function syncSpeed(v) {
+  state.speed = v;
+  playerFull.setSpeed(v);
+  playerMain.setSpeed(v);
+}
+playerFull.onSpeedChange = syncSpeed;
+playerMain.onSpeedChange = syncSpeed;
 var loopBtn = document.getElementById("loopBtn");
 loopBtn.addEventListener("click", function () {
   state.loop = !state.loop;
@@ -2665,18 +2937,19 @@ tabBtns.forEach(function (b) {
 });
 document.getElementById("practiceAllBtn").addEventListener("click", startPractice);
 var chaptersEl = document.getElementById("chapters");
-MOVES.forEach(function (m) {
-  var b = el("button", "chapter");
-  b.type = "button";
-  b.appendChild(el("span", "c-time", m.id + " · " + fmt(m.chapterStart)));
-  var zh = el("span", "c-zh font-display", m.shortZh);
-  b.appendChild(zh);
-  b.appendChild(el("span", "c-en", m.en));
-  b.addEventListener("click", function () {
-    playerFull.seekTo(m.chapterStart);
+function renderChapters() {
+  __tunnel.setInnerHTML(chaptersEl, "", "innerHTML");
+  MOVES.forEach(function (m) {
+    var b = el("button", "chapter");
+    b.type = "button";
+    b.appendChild(el("span", "c-time", m.id + " · " + fmt(m.chapterStart)));
+    b.appendChild(el("span", "c-name font-display", state.lang === "zh" ? m.zh : m.en));
+    b.addEventListener("click", function () {
+      playerFull.seekTo(m.chapterStart);
+    });
+    chaptersEl.appendChild(b);
   });
-  chaptersEl.appendChild(b);
-});
+}
 document.getElementById("practicePrev").addEventListener("click", function () {
   if (state.practiceIdx > 0) {
     state.practiceIdx--;
@@ -2720,7 +2993,10 @@ function startPractice() {
 function renderSettings() {
   var zh = state.lang === "zh";
   __tunnel.setAttr(document.documentElement, "lang", zh ? "zh-CN" : "en");
-  if (state.theme === "studio") document.body.removeAttribute("data-theme");else __tunnel.setAttr(document.body, "data-theme", state.theme);
+  document.getElementById("appTitle").textContent = zh ? "八段锦" : "Baduanjin";
+  var stageCls = "stage-shell stage-bg-" + state.theme;
+  document.getElementById("stageShellFull").className = stageCls;
+  document.getElementById("stageShellMain").className = stageCls;
   themeRow.querySelectorAll("button").forEach(function (b) {
     var on = b.getAttribute("data-theme-id") === state.theme;
     b.classList.toggle("active", on);
@@ -2739,11 +3015,24 @@ function renderSettings() {
     })[0];
     if (o) b.textContent = zh ? o.labelZh : o.label;
   });
-  musicRow.querySelectorAll("button").forEach(function (b) {
+  musicCardsEl.querySelectorAll("button").forEach(function (b) {
     var on = b.getAttribute("data-music-id") === state.music;
     b.classList.toggle("active", on);
     __tunnel.setAttr(b, "aria-pressed", String(on));
-    var m = MUSIC_OPTIONS.filter(function (x) {
+    var m = MUSIC_INSTRUMENTS.filter(function (x) {
+      return x.id === b.getAttribute("data-music-id");
+    })[0];
+    if (m) {
+      b.querySelector(".mc-name").textContent = zh ? m.labelZh : m.label;
+      var im = b.querySelector("img");
+      if (im) im.alt = zh ? m.altZh : m.alt;
+    }
+  });
+  musicAmbienceEl.querySelectorAll("button").forEach(function (b) {
+    var on = b.getAttribute("data-music-id") === state.music;
+    b.classList.toggle("active", on);
+    __tunnel.setAttr(b, "aria-pressed", String(on));
+    var m = MUSIC_AMBIENCE.filter(function (x) {
       return x.id === b.getAttribute("data-music-id");
     })[0];
     if (m) b.textContent = zh ? m.labelZh : m.label;
@@ -2752,12 +3041,9 @@ function renderSettings() {
     var on = b.getAttribute("data-lang-id") === state.lang;
     b.classList.toggle("active", on);
     __tunnel.setAttr(b, "aria-pressed", String(on));
-  });
-  speedRow.querySelectorAll("button").forEach(function (b) {
-    var on = Number(b.getAttribute("data-speed")) === state.speed;
-    b.classList.toggle("active", on);
-    __tunnel.setAttr(b, "aria-pressed", String(on));
-    __tunnel.setAttr(b, "aria-label", (zh ? "播放速度 " : "Playback speed ") + b.getAttribute("data-speed") + (zh ? " 倍" : " times"));
+    var isZhBtn = b.getAttribute("data-lang-id") === "zh";
+    b.textContent = zh ? isZhBtn ? "中文" : "英文" : isZhBtn ? "Chinese" : "English";
+    __tunnel.setAttr(b, "aria-label", isZhBtn ? zh ? "切换到中文界面" : "Switch interface to Chinese" : zh ? "切换到英文界面" : "Switch interface to English");
   });
   loopBtn.classList.toggle("active", state.loop);
   __tunnel.setAttr(loopBtn, "aria-pressed", String(state.loop));
@@ -2765,9 +3051,8 @@ function renderSettings() {
   mirrorBtn.classList.toggle("active", state.mirror);
   __tunnel.setAttr(mirrorBtn, "aria-pressed", String(state.mirror));
   mirrorBtn.textContent = zh ? "🪞 镜像 " + (state.mirror ? "开" : "关") : "🪞 Mirror " + (state.mirror ? "on" : "off");
-  document.getElementById("speedLabel").textContent = zh ? "速度" : "Speed";
   document.getElementById("mirrorHint").textContent = zh ? "镜像会翻转画面，与你自己的左右一致。" : "Mirror flips the video so it matches your own left and right.";
-  document.getElementById("legendBg").textContent = zh ? "背景" : "Background";
+  document.getElementById("legendBg").textContent = zh ? "视频背景" : "Video background";
   document.getElementById("legendOutfit").textContent = zh ? "服装" : "Outfit";
   document.getElementById("legendMusic").textContent = zh ? "音乐" : "Music";
   document.getElementById("legendLang").textContent = zh ? "语言" : "Language";
@@ -2917,10 +3202,10 @@ function renderMoveList() {
     var names = el("span", "move-names");
     if (state.lang === "zh") {
       names.appendChild(el("span", "en", m.zh));
-      names.appendChild(el("span", "zh", m.en + " · " + MOVES_ZH[m.id].focus));
+      names.appendChild(el("span", "zh", MOVES_ZH[m.id].focus));
     } else {
       names.appendChild(el("span", "en", m.en));
-      names.appendChild(el("span", "zh", m.zh + " · " + m.focus));
+      names.appendChild(el("span", "zh", m.focus));
     }
     main.appendChild(num);
     main.appendChild(names);
@@ -2980,11 +3265,9 @@ function renderStage() {
   if (state.lang === "zh") {
     document.getElementById("formKicker").textContent = "第 " + move.id + " 式 · " + MOVES_ZH[move.id].focus;
     document.getElementById("formTitle").textContent = move.zh;
-    document.getElementById("formZh").textContent = move.en;
   } else {
     document.getElementById("formKicker").textContent = "Form " + move.id + " · " + move.focus;
     document.getElementById("formTitle").textContent = move.en;
-    document.getElementById("formZh").textContent = move.zh;
   }
   renderAngleRow(move);
   var gymNoteEl = document.getElementById("gymNote");
@@ -3033,11 +3316,12 @@ function renderStage() {
   var done = !!state.practiced[move.id];
   pb.classList.toggle("done", done);
   __tunnel.setAttr(pb, "aria-pressed", String(done));
-  pb.textContent = state.lang === "zh" ? done ? "✓ " + move.shortZh + " 已练习——点击撤销" : "标记「" + move.shortZh + "」为已练习" : done ? "✓ " + move.shortZh + " practiced — tap to undo" : "Mark " + move.en + " as practiced";
+  pb.textContent = state.lang === "zh" ? done ? "✓ 已练习——点击撤销" : "标记「" + move.zh + "」为已练习" : done ? "✓ " + move.en + " practiced — tap to undo" : "Mark " + move.en + " as practiced";
 }
 function renderAll() {
   renderSettings();
   renderHeader();
+  renderChapters();
   renderStage();
   renderMoveList();
 }
